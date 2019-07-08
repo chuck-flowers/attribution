@@ -12,7 +12,7 @@ use syn::NestedMeta;
 pub struct AttrMap(pub HashMap<String, AttrVal>);
 
 impl AttrMap {
-    fn new() -> Self {
+    pub fn new() -> Self {
         AttrMap(HashMap::new())
     }
 }

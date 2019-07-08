@@ -3,10 +3,50 @@ use quote::ToTokens;
 use std::convert::TryFrom;
 use syn::Field;
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct FieldSpec {
-    ident: String,
-    ty: String,
+pub struct FieldSpec<'i, 't> {
+    ident: &'i syn::Ident,
+    ty: &'t syn::Type,
+}
+
+impl<'i, 't> FieldSpec<'i, 't> {
+    pub fn new(ident: &'i syn::Ident, ty: &'t syn::Type) -> Self {
+        FieldSpec {
+            ident,
+            ty
+        }
+    }
+    
+    pub fn ident(&self) -> &impl ToTokens {
+        self.ident
+    }
+
+    pub fn ty(&self) -> &impl ToTokens {
+        self.ty
+    }
+}
+
+impl std::fmt::Debug for FieldSpec<'_, '_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut ty_stream = TokenStream::new();
+        self.ty().to_tokens(&mut ty_stream);
+
+        let mut ident_stream = TokenStream::new();
+        self.ty().to_tokens(&mut ident_stream);
+
+        write!(f, "FieldSpec {{ ident: {:?}, ty: {:?} }}", ident_stream, ty_stream)
+    }
+}
+
+impl std::cmp::PartialEq for FieldSpec<'_, '_> {
+    fn eq(&self, other: &Self) -> bool {
+        let mut self_ty_stream = TokenStream::new();
+        self.ty().to_tokens(&mut self_ty_stream);
+
+        let mut other_ty_stream = TokenStream::new();
+        other.ty().to_tokens(&mut other_ty_stream);
+
+        self.ident == other.ident && self_ty_stream.to_string() == other_ty_stream.to_string()
+    }
 }
 
 #[derive(Debug)]
@@ -14,18 +54,13 @@ pub enum ParseError {
     NoIdent,
 }
 
-impl TryFrom<&Field> for FieldSpec {
+impl<'i, 't, 'a: 'i + 't> TryFrom<&'a Field> for FieldSpec<'i, 't> {
     type Error = ParseError;
 
-    fn try_from(field: &Field) -> Result<Self, Self::Error> {
+    fn try_from(field: &'a Field) -> Result<Self, Self::Error> {
         let field_ident = &field.ident;
-        if let Some(ident_ref) = field_ident {
-            let ident = ident_ref.to_string();
-
-            let mut ty_stream = TokenStream::new();
-            field.ty.to_tokens(&mut ty_stream);
-            let ty = format!("{}", ty_stream);
-
+        if let Some(ident) = field_ident {
+            let ty = &field.ty;
             Ok(FieldSpec { ident, ty })
         } else {
             Err(ParseError::NoIdent)
@@ -56,16 +91,23 @@ mod tests {
                 .iter()
                 .map(|f| FieldSpec::try_from(f).unwrap())
                 .collect();
+            
+            let foo_ident: syn::Ident = parse_quote!(foo);
+            let foo_type: syn::Type = parse_quote!(i32);
+
+            let bar_ident: syn::Ident = parse_quote!(bar);
+            let bar_type: syn::Type = parse_quote!(String);
+            
             assert_eq!(
                 test_fields,
                 vec![
                     FieldSpec {
-                        ident: "foo".to_string(),
-                        ty: "i32".to_string()
+                        ident: &foo_ident,
+                        ty: &foo_type
                     },
                     FieldSpec {
-                        ident: "bar".to_string(),
-                        ty: "String".to_string()
+                        ident: &bar_ident,
+                        ty: &bar_type
                     }
                 ]
             )
