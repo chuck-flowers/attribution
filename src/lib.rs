@@ -8,12 +8,11 @@ mod attr_map;
 use std::convert::TryFrom;
 use field_spec::FieldSpec;
 use attr_map::AttrMap;
-use attr_map::AttrVal;
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use quote::quote;
 
 #[proc_macro_attribute]
-pub fn attr_args(attr: TokenStream, input: TokenStream) -> TokenStream {
+pub fn attr_args(attr: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the inputs
     let input_attr = syn::parse_macro_input!(attr as AttrMap);
     let input_struct = if let syn::Item::Struct(struct_data) = syn::parse_macro_input!(input as syn::Item) {
@@ -23,10 +22,12 @@ pub fn attr_args(attr: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     let fields = extract_fields(&input_struct);
-    let output = impl_parse(&input_attr, &fields);
+    let output = impl_parse(&input_attr, &input_struct.ident, &fields);
 
     (quote! {
         #input_struct
+
+        #output
     })
     .into()
 }
@@ -39,52 +40,34 @@ fn extract_fields(input_struct: &syn::ItemStruct) -> Vec<FieldSpec> {
     }
 }
 
-fn impl_parse(input_attr: &AttrMap, fields: &Vec<FieldSpec>) -> proc_macro2::TokenStream {
-    let idents = fields.iter().map(|f| f.ident());
-    let tys = fields.iter().map(|f| f.ty());
+fn impl_parse(input_attr: &AttrMap, struct_name: &syn::Ident, fields: &Vec<FieldSpec>) -> TokenStream {
+    let idents = fields.iter().map(FieldSpec::ident);
+    let tys = fields.iter().map(FieldSpec::ty);
 
-    let inital_field_declarations = quote! {
-        #(let mut #idents : Option<#tys> = None;)*
-    };
+    let inital_field_declarations = generate_field_decl(idents.clone(), tys.clone());
+    let struct_return = generate_struct_return(&struct_name, idents.clone());
 
     quote! {
+        // Declare each field for the struct
         #inital_field_declarations
+
+        // Return the struct
+        #struct_return
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use syn::parse_quote;
+fn generate_field_decl<'a, 'b>(idents: impl Iterator<Item = &'a syn::Ident>, tys: impl Iterator<Item = &'b syn::Type>) -> TokenStream {
+    quote! {
+        #(let mut #idents : Option<#tys> = None;)*
+    }
+}
 
-    #[test]
-    fn impl_parse_test() {
-        let mut attr_map = AttrMap::new();
-        attr_map.insert("foo".into(), AttrVal::Str("fooVal".into()));
-        attr_map.insert("bar".into(), AttrVal::Integer(1));
-        attr_map.insert("baz".into(), AttrVal::Bool(true));
-
-        let foo_ident = parse_quote!(foo);
-        let bar_ident = parse_quote!(bar);
-        let baz_ident = parse_quote!(baz);
-        let foo_type = parse_quote!(String);
-        let bar_type = parse_quote!(u32);
-        let baz_type = parse_quote!(bool);
-
-        let fields = vec![
-            FieldSpec::new(&foo_ident, &foo_type),
-            FieldSpec::new(&bar_ident, &bar_type),
-            FieldSpec::new(&baz_ident, &baz_type)
-        ];
-
-        let output = impl_parse(&attr_map, &fields);
-        assert_eq!(
-            output.to_string(),
-            (quote! {
-                let mut foo: Option<String> = None;
-                let mut bar: Option<u32> = None;
-                let mut baz: Option<bool> = None;
-            }).to_string()
-        )
+fn generate_struct_return<'a, 'b>(struct_name: &syn::Ident, idents: impl Iterator<Item = &'a syn::Ident> + Clone) -> TokenStream {
+    let struct_return_idents_1 = idents.clone();
+    let struct_return_idents_2 = idents.clone();
+    quote! {
+        Ok( #struct_name {
+            #(#struct_return_idents_1: #struct_return_idents_2.unwrap()),*
+        })
     }
 }

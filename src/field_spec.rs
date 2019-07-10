@@ -16,11 +16,11 @@ impl<'i, 't> FieldSpec<'i, 't> {
         }
     }
     
-    pub fn ident(&self) -> &impl ToTokens {
+    pub fn ident(&self) -> &syn::Ident {
         self.ident
     }
 
-    pub fn ty(&self) -> &impl ToTokens {
+    pub fn ty(&self) -> &syn::Type {
         self.ty
     }
 }
