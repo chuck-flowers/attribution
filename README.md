@@ -1,5 +1,7 @@
 # Attribution
 
+_This crate is a work in progress. This README will be valid once it is complete._
+
 Attribution is a crate containing macros that are designed to help in the 
 development of attribute style procedural macros. Specifically it is designed to 
 help in the parsing of attribute arguments. Attribution is able to do this 
