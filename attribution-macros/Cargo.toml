@@ -11,5 +11,4 @@ proc-macro = true
 attribution-types = { path = "../attribution-types" }
 proc-macro2 = "0.4.30"
 quote = "0.6.12"
-shrinkwraprs = "0.2.1"
 syn = { version = "0.15.39", features = ["full"] }

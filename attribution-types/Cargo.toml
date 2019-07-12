@@ -6,5 +6,4 @@ edition = "2018"
 
 [dependencies]
 proc-macro2 = "0.4.30"
-shrinkwraprs = "0.2.1"
 syn = "0.15.39"

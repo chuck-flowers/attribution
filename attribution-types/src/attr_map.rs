@@ -1,4 +1,3 @@
-use shrinkwraprs::Shrinkwrap;
 use std::collections::HashMap;
 use syn::parse::Parse;
 use syn::parse::Result;
@@ -7,13 +6,19 @@ use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
-#[derive(Shrinkwrap)]
-#[shrinkwrap(mutable)]
 pub struct AttrMap(pub HashMap<String, AttrVal>);
 
 impl AttrMap {
     pub fn new() -> Self {
         AttrMap(HashMap::new())
+    }
+
+    pub fn get(&self, key: &str) -> Option<&AttrVal> {
+        self.0.get(key)
+    }
+
+    pub fn insert(&mut self, key: String, val: AttrVal) -> Option<AttrVal> {
+        self.0.insert(key, val)
     }
 }
 
