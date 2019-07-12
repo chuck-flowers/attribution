@@ -1,0 +1,10 @@
+[package]
+name = "attribution-types"
+version = "0.1.0"
+authors = ["Timothy Flowers <t_chuck_flowers@yahoo.com>"]
+edition = "2018"
+
+[dependencies]
+proc-macro2 = "0.4.30"
+shrinkwraprs = "0.2.1"
+syn = "0.15.39"

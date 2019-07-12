@@ -2,14 +2,12 @@
 
 extern crate proc_macro;
 
-mod attr_map;
-mod conversion;
 mod extraction;
 mod field_spec;
 
 use std::convert::TryFrom;
 use field_spec::FieldSpec;
-use attr_map::AttrMap;
+use attribution_types::AttrMap;
 use proc_macro2::TokenStream;
 use quote::quote;
 
