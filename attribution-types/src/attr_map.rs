@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 use syn::parse::Parse;
 use syn::parse::Result;
-use syn::parse_macro_input::ParseMacroInput;
 use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
-pub struct AttrMap(pub HashMap<String, AttrVal>);
+pub struct AttrMap(HashMap<String, AttrVal>);
 
 impl AttrMap {
     pub fn new() -> Self {
@@ -20,6 +19,10 @@ impl AttrMap {
     pub fn insert(&mut self, key: String, val: AttrVal) -> Option<AttrVal> {
         self.0.insert(key, val)
     }
+
+    pub fn remove(&mut self, key: &str) -> Option<AttrVal> {
+        self.0.remove(key)
+    }
 }
 
 impl Parse for AttrMap {
@@ -27,10 +30,8 @@ impl Parse for AttrMap {
         println!("AttrMap::parse({:?})", buffer);
         let mut attribute_map = Self::new();
 
-        let args = syn::AttributeArgs::parse(buffer)?;
-        for arg in args.iter() {
-            println!("for loop iter");
-            if let NestedMeta::Meta(Meta::NameValue(nv)) = arg {
+        while !buffer.is_empty() {
+            if let NestedMeta::Meta(Meta::NameValue(nv)) = buffer.parse()? {
                 let param_name = nv.ident.to_string();
                 let param_value = AttrVal::from(&nv.lit);
                 attribute_map.insert(param_name, param_value);

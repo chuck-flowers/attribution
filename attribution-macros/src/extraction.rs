@@ -8,7 +8,10 @@ pub fn build_extractor(field: &FieldSpec) -> TokenStream {
     let field_key = syn::LitStr::new(&field.ident().to_string(), Span::call_site());
 
     quote! {
-        let #var_ident = attr_args[#field_key].unwrap().try_into().unwrap();
+        let #var_ident = attr_args.remove(#field_key)
+            .unwrap()
+            .try_into()
+            .unwrap();
     }
 }
 
@@ -26,7 +29,7 @@ mod tests {
         
         let extractor = build_extractor(&field);
         let expected = quote! {
-            let foo = attr_args["foo"].unwrap().try_into().unwrap();
+            let foo = attr_args.remove("foo").unwrap().try_into().unwrap();
         };
 
         assert_eq!(extractor.to_string(), expected.to_string());

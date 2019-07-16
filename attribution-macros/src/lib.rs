@@ -26,7 +26,6 @@ pub fn attr_args(attr: proc_macro::TokenStream, input: proc_macro::TokenStream) 
 
     (quote! {
         #input_struct
-
         #output
     })
     .into()
@@ -55,7 +54,13 @@ fn impl_parse(_input_attr: &AttrMap, struct_name: &syn::Ident, fields: &Vec<Fiel
     };
 
     quote! {
-        #extraction
-        #struct_return
+        impl syn::parse::Parse for #struct_name {
+            fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
+                use std::convert::TryInto;
+                let mut attr_args = attribution::AttrMap::parse(buffer)?;
+                #extraction
+                #struct_return
+            }
+        }
     }
 }
