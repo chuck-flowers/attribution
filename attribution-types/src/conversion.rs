@@ -1,5 +1,5 @@
-use std::convert::TryInto;
 use crate::attr_map::AttrVal;
+use std::convert::TryInto;
 
 #[derive(Debug, PartialEq)]
 pub struct TryIntoAttrValError;
@@ -10,7 +10,7 @@ impl TryInto<bool> for AttrVal {
         if let AttrVal::Bool(b) = self {
             Ok(b)
         } else {
-            Err(TryIntoAttrValError{})
+            Err(TryIntoAttrValError {})
         }
     }
 }
@@ -21,7 +21,7 @@ impl TryInto<u64> for AttrVal {
         if let AttrVal::Integer(i) = self {
             Ok(i)
         } else {
-            Err(TryIntoAttrValError{})
+            Err(TryIntoAttrValError {})
         }
     }
 }
@@ -32,7 +32,7 @@ impl TryInto<String> for AttrVal {
         if let AttrVal::Str(s) = self {
             Ok(s)
         } else {
-            Err(TryIntoAttrValError{})
+            Err(TryIntoAttrValError {})
         }
     }
 }

@@ -10,12 +10,9 @@ pub struct FieldSpec<'i, 't> {
 
 impl<'i, 't> FieldSpec<'i, 't> {
     pub fn new(ident: &'i syn::Ident, ty: &'t syn::Type) -> Self {
-        FieldSpec {
-            ident,
-            ty
-        }
+        FieldSpec { ident, ty }
     }
-    
+
     pub fn ident(&self) -> &syn::Ident {
         self.ident
     }
@@ -33,7 +30,11 @@ impl std::fmt::Debug for FieldSpec<'_, '_> {
         let mut ident_stream = TokenStream::new();
         self.ty().to_tokens(&mut ident_stream);
 
-        write!(f, "FieldSpec {{ ident: {:?}, ty: {:?} }}", ident_stream, ty_stream)
+        write!(
+            f,
+            "FieldSpec {{ ident: {:?}, ty: {:?} }}",
+            ident_stream, ty_stream
+        )
     }
 }
 
@@ -91,13 +92,13 @@ mod tests {
                 .iter()
                 .map(|f| FieldSpec::try_from(f).unwrap())
                 .collect();
-            
+
             let foo_ident: syn::Ident = parse_quote!(foo);
             let foo_type: syn::Type = parse_quote!(i32);
 
             let bar_ident: syn::Ident = parse_quote!(bar);
             let bar_type: syn::Type = parse_quote!(String);
-            
+
             assert_eq!(
                 test_fields,
                 vec![
