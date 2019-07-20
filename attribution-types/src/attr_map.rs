@@ -54,7 +54,7 @@ mod attr_map_tests {
     #[test]
     fn parse_test() {
         let attr: syn::Attribute = syn::parse_quote!(#[attr foo = "fooValue", bar = 1, baz = true]);
-        let attr_args_stream = attr.tts.into();
+        let attr_args_stream = attr.tts;
         let attr_args: AttrMap = syn::parse2(attr_args_stream).unwrap();
 
         let foo_val: Option<&AttrVal> = attr_args.get("foo");
