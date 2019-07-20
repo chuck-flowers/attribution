@@ -6,9 +6,9 @@ use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
-pub struct AttrMap(HashMap<String, ParamVal>);
+pub struct Parameters(HashMap<String, ParamVal>);
 
-impl AttrMap {
+impl Parameters {
     pub fn new() -> Self {
         Self::default()
     }
@@ -26,13 +26,13 @@ impl AttrMap {
     }
 }
 
-impl Default for AttrMap {
+impl Default for Parameters {
     fn default() -> Self {
-        AttrMap(HashMap::new())
+        Parameters(HashMap::new())
     }
 }
 
-impl Parse for AttrMap {
+impl Parse for Parameters {
     fn parse(buffer: ParseStream) -> Result<Self> {
         let mut attribute_map = Self::new();
 
@@ -65,7 +65,7 @@ mod attr_map_tests {
     fn parse_test() {
         let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
         if let proc_macro2::TokenTree::Group(group) = attr.tts.into_iter().next().unwrap() {
-            let attr_args: AttrMap = parse2(group.stream()).unwrap();
+            let attr_args: Parameters = parse2(group.stream()).unwrap();
             let foo_val = attr_args.get("foo");
             let bar_val = attr_args.get("bar");
             let baz_val = attr_args.get("baz");

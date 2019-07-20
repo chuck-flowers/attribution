@@ -5,7 +5,7 @@ extern crate proc_macro;
 mod extraction;
 mod field_spec;
 
-use attribution_types::AttrMap;
+use attribution_types::Parameters;
 use field_spec::FieldSpec;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -17,7 +17,7 @@ pub fn attr_args(
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     // Parse the inputs
-    let input_attr = syn::parse_macro_input!(attr as AttrMap);
+    let input_attr = syn::parse_macro_input!(attr as Parameters);
     let input_struct =
         if let syn::Item::Struct(struct_data) = syn::parse_macro_input!(input as syn::Item) {
             struct_data
@@ -49,7 +49,7 @@ fn extract_fields(input_struct: &syn::ItemStruct) -> Vec<FieldSpec> {
 }
 
 fn impl_parse(
-    _input_attr: &AttrMap,
+    _input_attr: &Parameters,
     struct_name: &syn::Ident,
     fields: &[FieldSpec],
 ) -> TokenStream {
@@ -70,7 +70,7 @@ fn impl_parse(
         impl syn::parse::Parse for #struct_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 use std::convert::TryInto;
-                let mut attr_args = attribution::AttrMap::parse(buffer)?;
+                let mut attr_args = attribution::Parameters::parse(buffer)?;
                 #extraction
                 #struct_return
             }
