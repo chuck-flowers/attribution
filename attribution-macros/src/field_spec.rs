@@ -9,10 +9,6 @@ pub struct FieldSpec<'i, 't> {
 }
 
 impl<'i, 't> FieldSpec<'i, 't> {
-    pub fn new(ident: &'i syn::Ident, ty: &'t syn::Type) -> Self {
-        FieldSpec { ident, ty }
-    }
-
     pub fn ident(&self) -> &syn::Ident {
         self.ident
     }

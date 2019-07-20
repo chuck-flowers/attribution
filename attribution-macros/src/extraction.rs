@@ -20,12 +20,22 @@ mod tests {
 
     use super::*;
     use crate::field_spec::FieldSpec;
+    use proc_macro2::Span;
+    use std::convert::TryFrom;
+    use syn::parse_quote;
 
     #[test]
     fn build_extractor_test() {
-        let ident = syn::parse_quote!(foo);
-        let ty = syn::parse_quote!(bool);
-        let field = FieldSpec::new(&ident, &ty);
+        let raw_field = syn::Field {
+            attrs: vec![],
+            vis: syn::Visibility::Inherited,
+            ident: Some(parse_quote!(foo)),
+            colon_token: Some(syn::token::Colon {
+                spans: [Span::call_site()],
+            }),
+            ty: parse_quote!(bool),
+        };
+        let field = FieldSpec::try_from(&raw_field).unwrap();
 
         let extractor = build_extractor(&field);
         let expected = quote! {
