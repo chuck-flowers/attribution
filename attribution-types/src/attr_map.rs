@@ -9,7 +9,7 @@ pub struct AttrMap(HashMap<String, AttrVal>);
 
 impl AttrMap {
     pub fn new() -> Self {
-        AttrMap(HashMap::new())
+        Self::default()
     }
 
     pub fn get(&self, key: &str) -> Option<&AttrVal> {
@@ -22,6 +22,12 @@ impl AttrMap {
 
     pub fn remove(&mut self, key: &str) -> Option<AttrVal> {
         self.0.remove(key)
+    }
+}
+
+impl Default for AttrMap {
+    fn default() -> Self {
+        AttrMap(HashMap::new())
     }
 }
 
