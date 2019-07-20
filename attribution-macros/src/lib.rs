@@ -51,7 +51,7 @@ fn extract_fields(input_struct: &syn::ItemStruct) -> Vec<FieldSpec> {
 fn impl_parse(
     _input_attr: &AttrMap,
     struct_name: &syn::Ident,
-    fields: &Vec<FieldSpec>,
+    fields: &[FieldSpec],
 ) -> TokenStream {
     let extractors = fields.iter().map(extraction::build_extractor);
 
