@@ -6,22 +6,22 @@ use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
-pub struct AttrMap(HashMap<String, AttrVal>);
+pub struct AttrMap(HashMap<String, ParamVal>);
 
 impl AttrMap {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn get(&self, key: &str) -> Option<&AttrVal> {
+    pub fn get(&self, key: &str) -> Option<&ParamVal> {
         self.0.get(key)
     }
 
-    pub fn insert(&mut self, key: String, val: AttrVal) -> Option<AttrVal> {
+    pub fn insert(&mut self, key: String, val: ParamVal) -> Option<ParamVal> {
         self.0.insert(key, val)
     }
 
-    pub fn remove(&mut self, key: &str) -> Option<AttrVal> {
+    pub fn remove(&mut self, key: &str) -> Option<ParamVal> {
         self.0.remove(key)
     }
 }
@@ -40,7 +40,7 @@ impl Parse for AttrMap {
             // Parse the next key value pair
             if let NestedMeta::Meta(Meta::NameValue(nv)) = buffer.parse()? {
                 let param_name = nv.ident.to_string();
-                let param_value = AttrVal::from(&nv.lit);
+                let param_value = ParamVal::from(&nv.lit);
                 attribute_map.insert(param_name, param_value);
             }
 
@@ -71,9 +71,9 @@ mod attr_map_tests {
             let baz_val = attr_args.get("baz");
             let other_val = attr_args.get("other");
 
-            assert_eq!(foo_val, Some(&AttrVal::Str("fooValue".to_string())));
-            assert_eq!(bar_val, Some(&AttrVal::Int(1)));
-            assert_eq!(baz_val, Some(&AttrVal::Bool(true)));
+            assert_eq!(foo_val, Some(&ParamVal::Str("fooValue".to_string())));
+            assert_eq!(bar_val, Some(&ParamVal::Int(1)));
+            assert_eq!(baz_val, Some(&ParamVal::Bool(true)));
             assert_eq!(other_val, None);
         } else {
             panic!("Didn't unwrap appropriately");
@@ -82,18 +82,18 @@ mod attr_map_tests {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum AttrVal {
+pub enum ParamVal {
     Bool(bool),
     Int(u64),
     Str(String),
 }
 
-impl From<&Lit> for AttrVal {
+impl From<&Lit> for ParamVal {
     fn from(lit: &Lit) -> Self {
         match lit {
-            Lit::Bool(b) => AttrVal::Bool(b.value),
-            Lit::Int(i) => AttrVal::Int(i.value()),
-            Lit::Str(s) => AttrVal::Str(s.value()),
+            Lit::Bool(b) => ParamVal::Bool(b.value),
+            Lit::Int(i) => ParamVal::Int(i.value()),
+            Lit::Str(s) => ParamVal::Str(s.value()),
             _ => unimplemented!(),
         }
     }
@@ -111,12 +111,12 @@ mod attr_val_tests {
         let cases = vec![
             (
                 Lit::Str(LitStr::new("foo", Span::call_site())),
-                AttrVal::Str("foo".to_string()),
+                ParamVal::Str("foo".to_string()),
                 "string literal",
             ),
             (
                 Lit::Int(syn::LitInt::new(1, syn::IntSuffix::None, Span::call_site())),
-                AttrVal::Int(1),
+                ParamVal::Int(1),
                 "int literal",
             ),
             (
@@ -124,13 +124,18 @@ mod attr_val_tests {
                     value: true,
                     span: Span::call_site(),
                 }),
-                AttrVal::Bool(true),
+                ParamVal::Bool(true),
                 "bool literal",
             ),
         ];
 
         for case in cases.into_iter() {
-            assert_eq!(AttrVal::from(&case.0), case.1, "Failed the {} test", case.2);
+            assert_eq!(
+                ParamVal::from(&case.0),
+                case.1,
+                "Failed the {} test",
+                case.2
+            );
         }
     }
 }

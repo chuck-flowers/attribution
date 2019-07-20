@@ -1,83 +1,83 @@
-use crate::attr_map::AttrVal;
+use crate::attr_map::ParamVal;
 use std::convert::TryInto;
 
 #[derive(Debug, PartialEq)]
-pub struct TryIntoAttrValError;
+pub struct TryIntoParamValError;
 
-impl TryInto<bool> for AttrVal {
-    type Error = TryIntoAttrValError;
+impl TryInto<bool> for ParamVal {
+    type Error = TryIntoParamValError;
     fn try_into(self) -> Result<bool, Self::Error> {
-        if let AttrVal::Bool(b) = self {
+        if let ParamVal::Bool(b) = self {
             Ok(b)
         } else {
-            Err(TryIntoAttrValError {})
+            Err(TryIntoParamValError {})
         }
     }
 }
 
-impl TryInto<u64> for AttrVal {
-    type Error = TryIntoAttrValError;
+impl TryInto<u64> for ParamVal {
+    type Error = TryIntoParamValError;
     fn try_into(self) -> Result<u64, Self::Error> {
-        if let AttrVal::Int(i) = self {
+        if let ParamVal::Int(i) = self {
             Ok(i)
         } else {
-            Err(TryIntoAttrValError {})
+            Err(TryIntoParamValError {})
         }
     }
 }
 
-impl TryInto<String> for AttrVal {
-    type Error = TryIntoAttrValError;
+impl TryInto<String> for ParamVal {
+    type Error = TryIntoParamValError;
     fn try_into(self) -> Result<String, Self::Error> {
-        if let AttrVal::Str(s) = self {
+        if let ParamVal::Str(s) = self {
             Ok(s)
         } else {
-            Err(TryIntoAttrValError {})
+            Err(TryIntoParamValError {})
         }
     }
 }
 
-impl From<&str> for AttrVal {
+impl From<&str> for ParamVal {
     fn from(src: &str) -> Self {
-        AttrVal::Str(src.into())
+        ParamVal::Str(src.into())
     }
 }
 
-impl From<u64> for AttrVal {
+impl From<u64> for ParamVal {
     fn from(src: u64) -> Self {
-        AttrVal::Int(src)
+        ParamVal::Int(src)
     }
 }
 
-impl From<bool> for AttrVal {
+impl From<bool> for ParamVal {
     fn from(src: bool) -> Self {
-        AttrVal::Bool(src)
+        ParamVal::Bool(src)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::attr_map::AttrVal;
+    use crate::attr_map::ParamVal;
 
     #[test]
     fn bool_conversion() {
-        let left = AttrVal::Bool(true).try_into();
+        let left = ParamVal::Bool(true).try_into();
         let right = Ok(true);
         assert_eq!(left, right)
     }
 
     #[test]
     fn int_conversion() {
-        let left = AttrVal::Int(1).try_into();
+        let left = ParamVal::Int(1).try_into();
         let right = Ok(1);
         assert_eq!(left, right)
     }
 
     #[test]
     fn str_conversion() {
-        let left: Result<String, TryIntoAttrValError> = AttrVal::Str("hello".into()).try_into();
-        let right: Result<String, TryIntoAttrValError> = Ok("hello".into());
+        let left: Result<String, TryIntoParamValError> = ParamVal::Str("hello".into()).try_into();
+        let right: Result<String, TryIntoParamValError> = Ok("hello".into());
         assert_eq!(left, right)
     }
 }
