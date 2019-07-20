@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use syn::parse::Parse;
+use syn::parse::ParseStream;
 use syn::parse::Result;
 use syn::Lit;
 use syn::Meta;
@@ -32,14 +33,20 @@ impl Default for AttrMap {
 }
 
 impl Parse for AttrMap {
-    fn parse(buffer: &syn::parse::ParseBuffer<'_>) -> Result<Self> {
+    fn parse(buffer: ParseStream) -> Result<Self> {
         let mut attribute_map = Self::new();
 
         while !buffer.is_empty() {
+            // Parse the next key value pair
             if let NestedMeta::Meta(Meta::NameValue(nv)) = buffer.parse()? {
                 let param_name = nv.ident.to_string();
                 let param_value = AttrVal::from(&nv.lit);
                 attribute_map.insert(param_name, param_value);
+            }
+
+            // If the next token is a comma, consume it
+            if buffer.peek(syn::Token![,]) {
+                let _ = buffer.parse::<syn::token::Comma>();
             }
         }
 
@@ -57,18 +64,20 @@ mod attr_map_tests {
     #[test]
     fn parse_test() {
         let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
-        dbg!(&attr.tts);
-        let attr_args: AttrMap = parse2(attr.tts).unwrap();
+        if let proc_macro2::TokenTree::Group(group) = attr.tts.into_iter().next().unwrap() {
+            let attr_args: AttrMap = parse2(group.stream()).unwrap();
+            let foo_val = attr_args.get("foo");
+            let bar_val = attr_args.get("bar");
+            let baz_val = attr_args.get("baz");
+            let other_val = attr_args.get("other");
 
-        let foo_val = attr_args.get("foo");
-        let bar_val = attr_args.get("bar");
-        let baz_val = attr_args.get("baz");
-        let other_val = attr_args.get("other");
-
-        assert_eq!(foo_val, Some(&AttrVal::Str("fooValue".to_string())));
-        assert_eq!(bar_val, Some(&AttrVal::Int(1)));
-        assert_eq!(baz_val, Some(&AttrVal::Bool(true)));
-        assert_eq!(other_val, None);
+            assert_eq!(foo_val, Some(&AttrVal::Str("fooValue".to_string())));
+            assert_eq!(bar_val, Some(&AttrVal::Int(1)));
+            assert_eq!(baz_val, Some(&AttrVal::Bool(true)));
+            assert_eq!(other_val, None);
+        } else {
+            panic!("Didn't unwrap appropriately");
+        }
     }
 }
 
