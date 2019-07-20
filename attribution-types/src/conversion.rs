@@ -37,6 +37,24 @@ impl TryInto<String> for AttrVal {
     }
 }
 
+impl From<&str> for AttrVal {
+    fn from(src: &str) -> Self {
+        AttrVal::Str(src.into())
+    }
+}
+
+impl From<u64> for AttrVal {
+    fn from(src: u64) -> Self {
+        AttrVal::Integer(src)
+    }
+}
+
+impl From<bool> for AttrVal {
+    fn from(src: bool) -> Self {
+        AttrVal::Bool(src)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
