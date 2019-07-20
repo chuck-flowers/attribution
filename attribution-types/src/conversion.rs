@@ -18,7 +18,7 @@ impl TryInto<bool> for AttrVal {
 impl TryInto<u64> for AttrVal {
     type Error = TryIntoAttrValError;
     fn try_into(self) -> Result<u64, Self::Error> {
-        if let AttrVal::Integer(i) = self {
+        if let AttrVal::Int(i) = self {
             Ok(i)
         } else {
             Err(TryIntoAttrValError {})
@@ -45,7 +45,7 @@ impl From<&str> for AttrVal {
 
 impl From<u64> for AttrVal {
     fn from(src: u64) -> Self {
-        AttrVal::Integer(src)
+        AttrVal::Int(src)
     }
 }
 
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn int_conversion() {
-        let left = AttrVal::Integer(1).try_into();
+        let left = AttrVal::Int(1).try_into();
         let right = Ok(1);
         assert_eq!(left, right)
     }

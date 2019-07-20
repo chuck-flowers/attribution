@@ -58,7 +58,7 @@ mod attr_map_tests {
         let other_val: Option<&AttrVal> = attr_args.get("other");
 
         assert_eq!(foo_val, Some(&AttrVal::Str("fooValue".to_string())));
-        assert_eq!(bar_val, Some(&AttrVal::Integer(1)));
+        assert_eq!(bar_val, Some(&AttrVal::Int(1)));
         assert_eq!(baz_val, Some(&AttrVal::Bool(true)));
         assert_eq!(other_val, None);
     }
@@ -67,7 +67,7 @@ mod attr_map_tests {
 #[derive(Debug, PartialEq)]
 pub enum AttrVal {
     Bool(bool),
-    Integer(u64),
+    Int(u64),
     Str(String),
 }
 
@@ -75,7 +75,7 @@ impl From<&Lit> for AttrVal {
     fn from(lit: &Lit) -> Self {
         match lit {
             Lit::Bool(b) => AttrVal::Bool(b.value),
-            Lit::Int(i) => AttrVal::Integer(i.value()),
+            Lit::Int(i) => AttrVal::Int(i.value()),
             Lit::Str(s) => AttrVal::Str(s.value()),
             _ => unimplemented!(),
         }
@@ -99,7 +99,7 @@ mod attr_val_tests {
             ),
             (
                 Lit::Int(syn::LitInt::new(1, syn::IntSuffix::None, Span::call_site())),
-                AttrVal::Integer(1),
+                AttrVal::Int(1),
                 "int literal",
             ),
             (
