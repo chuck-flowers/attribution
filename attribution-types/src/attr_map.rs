@@ -50,17 +50,20 @@ impl Parse for AttrMap {
 #[cfg(test)]
 mod attr_map_tests {
     use super::*;
+    use syn::parse2;
+    use syn::parse_quote;
+    use syn::Attribute;
 
     #[test]
     fn parse_test() {
-        let attr: syn::Attribute = syn::parse_quote!(#[attr foo = "fooValue", bar = 1, baz = true]);
-        let attr_args_stream = attr.tts;
-        let attr_args: AttrMap = syn::parse2(attr_args_stream).unwrap();
+        let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
+        dbg!(&attr.tts);
+        let attr_args: AttrMap = parse2(attr.tts).unwrap();
 
-        let foo_val: Option<&AttrVal> = attr_args.get("foo");
-        let bar_val: Option<&AttrVal> = attr_args.get("bar");
-        let baz_val: Option<&AttrVal> = attr_args.get("baz");
-        let other_val: Option<&AttrVal> = attr_args.get("other");
+        let foo_val = attr_args.get("foo");
+        let bar_val = attr_args.get("bar");
+        let baz_val = attr_args.get("baz");
+        let other_val = attr_args.get("other");
 
         assert_eq!(foo_val, Some(&AttrVal::Str("fooValue".to_string())));
         assert_eq!(bar_val, Some(&AttrVal::Int(1)));
