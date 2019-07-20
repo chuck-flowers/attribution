@@ -33,7 +33,6 @@ impl Default for AttrMap {
 
 impl Parse for AttrMap {
     fn parse(buffer: &syn::parse::ParseBuffer<'_>) -> Result<Self> {
-        println!("AttrMap::parse({:?})", buffer);
         let mut attribute_map = Self::new();
 
         while !buffer.is_empty() {
