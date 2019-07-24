@@ -1,58 +1,63 @@
 # Attribution
 
-_This crate is a work in progress. This README will be valid once it is complete._
+Attribution is a crate that makes parsing attribute-style procedural macros as 
+easy as declaring a struct.
 
-Attribution is a crate containing macros that are designed to help in the 
-development of attribute style procedural macros. Specifically it is designed to 
-help in the parsing of attribute arguments. Attribution is able to do this 
-without the user having to know how to parse the attribute arguments. 
-Attribution's goal is to make parsing the attribute as easy as declaring its 
-parameters
+## Example Usage
 
-## Attribution in Action
-
-Here's a quick example how Attribution helps make implementing attribute style 
-proc macros easier. For this example, a simple attribute called `ez_log` will be 
-used. The purpose of the attribute is to log a message at the beginning of the 
-function call. The actual implementation of the proc macro won't be written but 
-the logic to parse it attribute arguments using Attribution will be shown.
-
-**DISCLAIMER:** At the time of this writing `ez_log` is not an existing rust 
-crate. If that should change in the future and you (as the owner) would like me 
-to change this example, please feel free to open an issue.
-
-Let the following be an example usage of this example macro.
+Let's see it in action. Imagine that we want to create a procedural macro 
+attribute called `ez_trace`. That adds a custom message to the beginning and 
+end of a method call. See the example below for how the usage of this attribute 
+would appear.
 
 ```rust
-use ez_log::ez_log;
-
-#[ez_log(msg = "inside my_function")]
-fn my_function(a: i32, b: i32) -> i32 {
-    a + b
+#[ez_trace(start = "Starting...", end = "Ending...")]
+fn my_func() {
+    println!("Do some work");
 }
 ```
 
-The attribute takes a single parameter, `msg` which is a string. To parse the 
-argument within the proc macro write the following.
+In order to parse such an attribute we would need to add the following code to 
+our hypothetical procedural macro crate.
 
+**lib.rs**
 ```rust
-use attribution::attribute_args;
-use proc_macro::TokenStream;
-use syn::parse_macro_input;
-
-#[attribute_args]
-struct EzLogArgs {
-    msg: &'static str
+#[attr_args]
+struct EzTraceArgs {
+    start: String,
+    end: String
 }
 
-fn ez_log(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(attr as EzLogArgs);
-    // ...
+fn ez_trace(attr_ts: TokenStream, func_ts: TokenStream) -> TokenStream {
+    let args = syn::parse_macro_input!(attr_ts as EzTraceArgs);
+    /// Remaining macro implementation...
 }
 ```
 
-The `attribute_args` attribute generates the code necessary to parse an 
-`EzLogArgs` struct from the `TokenStream` using the 
-[parse_macro_input!](https://docs.rs/syn/0.15.39/syn/macro.parse_macro_input.html) 
-macro from the [syn](https://crates.io/crates/syn) crate. adding new parameters 
-to the macro is as easy as adding new fields to the `EzLogArgs` struct.
+With the above code, `args` will contain the string values `start` and `end` 
+("Starting..." and "Ending..." respectively). To parse additional parameters 
+simply add more fields to the `EzTraceArgs` struct. Currently the supported 
+types are: `String`, `u64`, and `bool`. Support for more standard library types 
+will arrive in the future and the ability to use custom types will also arrive 
+later.
+
+## Contributing
+
+If you'd like to support further development of attribution there are a few 
+things you can do. Feel free to open an issue [here]
+(https://github.com/chuck-flowers/attribution/issues/new) for any bugs you come 
+across or any feature requests you have for future releases of attribution. For 
+bugs, please include the minimal code required to produce the bug in the issue 
+description along with what you expect to happen and what actually happens.
+
+I will be adding a link soon to accept financial donations if you so wish. I 
+will continue to work on the project regardless of financial donations but if 
+you find attribution useful and would like to buy me a cup of coffee I would 
+be very grateful.
+
+I don't intend to accept pull requests at this time because I feel it would be 
+unethical to solicit donations and accept pull requests without financially 
+compensating the submitter. I don't want to get bogged down in the process of 
+determining what a fair share of the donations would be. I also feel the scope 
+and codebase of the project is small enough that I should be able to handle any 
+issues that appear in a timely manner.
