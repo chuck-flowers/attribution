@@ -11,6 +11,6 @@ repository = "https://github.com/chuck-flowers/attribution"
 license = "MIT"
 
 [dependencies]
-attribution-macros = "0.1.0"
+attribution-macros = { version = "0.1.0", path = "../attribution-macros" }
 proc-macro2 = "0.4.30"
 syn = "0.15.41"
