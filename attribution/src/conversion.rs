@@ -1,5 +1,15 @@
 use crate::attr_map::ParamVal;
+use crate::Parameters;
 use std::convert::TryInto;
+
+pub enum FromParametersError {}
+
+trait FromParameters: Sized {
+    fn from_parameters(
+        params: &mut Parameters,
+        field_name: &str,
+    ) -> Result<Self, FromParametersError>;
+}
 
 #[derive(Debug, PartialEq)]
 pub struct TryIntoParamValError;
