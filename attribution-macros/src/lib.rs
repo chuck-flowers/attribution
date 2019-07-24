@@ -1,4 +1,4 @@
-#![warn(clippy::all)]
+#![warn(clippy::all, clippy::cargo)]
 
 extern crate proc_macro;
 

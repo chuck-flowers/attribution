@@ -2,7 +2,13 @@
 name = "attribution-macros"
 version = "0.1.0"
 authors = ["Timothy Flowers <t_chuck_flowers@yahoo.com>"]
+description = "The macros used by the attribution crate"
+categories = ["development-tools::procedural-macro-helpers"]
+keywords = ["attribute", "parsing"]
+readme = "./README.md"
 edition = "2018"
+repository = "https://github.com/chuck-flowers/attribution"
+license = "MIT"
 
 [lib]
 proc-macro = true
