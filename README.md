@@ -44,11 +44,12 @@ later.
 ## Contributing
 
 If you'd like to support further development of attribution there are a few 
-things you can do. Feel free to open an issue [here]
-(https://github.com/chuck-flowers/attribution/issues/new) for any bugs you come 
-across or any feature requests you have for future releases of attribution. For 
-bugs, please include the minimal code required to produce the bug in the issue 
-description along with what you expect to happen and what actually happens.
+things you can do. Feel free to open an issue 
+[here](https://github.com/chuck-flowers/attribution/issues/new) for any 
+bugs you come across or any feature requests you have for future releases 
+of attribution. For bugs, please include the minimal code required to 
+produce the bug in the issue description along with what you expect to 
+happen and what actually happens.
 
 I will be adding a link soon to accept financial donations if you so wish. I 
 will continue to work on the project regardless of financial donations but if 
