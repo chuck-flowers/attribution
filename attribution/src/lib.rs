@@ -1,4 +1,4 @@
-#![warn(clippy::all)]
+#![warn(clippy::all, clippy::cargo)]
 
 mod attr_map;
 mod conversion;
