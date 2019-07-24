@@ -1,6 +1,9 @@
 #![warn(clippy::all)]
 
+mod attr_map;
+mod conversion;
+
+pub use attr_map::ParamVal;
+pub use attr_map::Parameters;
 pub use attribution_macros::attr_args;
-pub use attribution_types::ParamVal;
-pub use attribution_types::Parameters;
-pub use attribution_types::TryIntoParamValError;
+pub use conversion::TryIntoParamValError;

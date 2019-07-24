@@ -2,6 +2,5 @@
 
 members = [
     "attribution",
-    "attribution-macros",
-    "attribution-types"
+    "attribution-macros"
 ]

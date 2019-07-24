@@ -7,4 +7,5 @@ repository = "https://github.com/chuck-flowers/attribution"
 
 [dependencies]
 attribution-macros = { path = "../attribution-macros" }
-attribution-types = { path = "../attribution-types" }
+proc-macro2 = "0.4.30"
+syn = "0.15.41"
