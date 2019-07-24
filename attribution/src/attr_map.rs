@@ -99,6 +99,12 @@ impl From<&Lit> for ParamVal {
     }
 }
 
+impl From<Lit> for ParamVal {
+    fn from(lit: Lit) -> Self {
+        ParamVal::from(&lit)
+    }
+}
+
 #[cfg(test)]
 mod attr_val_tests {
 
