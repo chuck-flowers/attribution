@@ -5,28 +5,30 @@ extern crate proc_macro;
 mod extraction;
 mod field_spec;
 
-use attribution_types::Parameters;
 use field_spec::FieldSpec;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::convert::TryFrom;
+use syn::parse_macro_input;
+use syn::Fields;
+use syn::Ident;
+use syn::Item;
+use syn::ItemStruct;
 
 #[proc_macro_attribute]
 pub fn attr_args(
-    attr: proc_macro::TokenStream,
+    _attr: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     // Parse the inputs
-    let input_attr = syn::parse_macro_input!(attr as Parameters);
-    let input_struct =
-        if let syn::Item::Struct(struct_data) = syn::parse_macro_input!(input as syn::Item) {
-            struct_data
-        } else {
-            panic!("The attribute can only be applied to structs")
-        };
+    let input_struct = if let Item::Struct(struct_data) = parse_macro_input!(input as Item) {
+        struct_data
+    } else {
+        panic!("The attribute can only be applied to structs")
+    };
 
     let fields = extract_fields(&input_struct);
-    let output = impl_parse(&input_attr, &input_struct.ident, &fields);
+    let output = impl_parse(&input_struct.ident, &fields);
 
     (quote! {
         #input_struct
@@ -35,8 +37,8 @@ pub fn attr_args(
     .into()
 }
 
-fn extract_fields(input_struct: &syn::ItemStruct) -> Vec<FieldSpec> {
-    if let syn::Fields::Named(fields) = &input_struct.fields {
+fn extract_fields(input_struct: &ItemStruct) -> Vec<FieldSpec> {
+    if let Fields::Named(fields) = &input_struct.fields {
         fields
             .named
             .iter()
@@ -48,11 +50,7 @@ fn extract_fields(input_struct: &syn::ItemStruct) -> Vec<FieldSpec> {
     }
 }
 
-fn impl_parse(
-    _input_attr: &Parameters,
-    struct_name: &syn::Ident,
-    fields: &[FieldSpec],
-) -> TokenStream {
+fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
     let extractors = fields.iter().map(extraction::build_extractor);
 
     let extraction = quote! {
@@ -67,8 +65,8 @@ fn impl_parse(
     };
 
     quote! {
-        impl syn::parse::Parse for #struct_name {
-            fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
+        impl parse::Parse for #struct_name {
+            fn parse(buffer: &parse::ParseBuffer) -> parse::Result<Self> {
                 use std::convert::TryInto;
                 let mut attr_args = attribution::Parameters::parse(buffer)?;
                 #extraction
