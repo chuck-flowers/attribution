@@ -35,7 +35,7 @@ fn ez_trace(attr_ts: TokenStream, func_ts: TokenStream) -> TokenStream {
 ```
 
 With the above code, `args` will contain the string values `start` and `end` 
-("Starting..." and "Ending..." respectively). To parse additional parameters 
+(`"Starting..."` and `"Ending..."` respectively). To parse additional parameters 
 simply add more fields to the `EzTraceArgs` struct. Currently the supported 
 types are: `String`, `u64`, and `bool`. Support for more standard library types 
 will arrive in the future and the ability to use custom types will also arrive 
