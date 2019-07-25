@@ -1,8 +1,8 @@
 #![warn(clippy::all, clippy::cargo)]
 
-mod attr_map;
 mod conversion;
+mod params;
 
-pub use attr_map::ParamVal;
-pub use attr_map::Parameters;
 pub use attribution_macros::attr_args;
+pub use params::ParamVal;
+pub use params::Parameters;
