@@ -10,7 +10,7 @@ pub enum FromParametersError {
 trait FromParameters: Sized {
     fn from_parameters(
         params: &mut Parameters,
-        field_name: &str,
+        param_name: &str,
     ) -> Result<Self, FromParametersError>;
 }
 
@@ -49,6 +49,15 @@ impl FromParameters for u64 {
                 param_name: param_name.into(),
             })
         }
+    }
+}
+
+impl<T: FromParameters> FromParameters for Option<T> {
+    fn from_parameters(
+        params: &mut Parameters,
+        param_name: &str,
+    ) -> Result<Self, FromParametersError> {
+        Ok(T::from_parameters(params, param_name).ok())
     }
 }
 
@@ -103,5 +112,39 @@ mod tests {
 
         let right: String = "bar".into();
         assert_eq!(output.unwrap(), right);
+    }
+
+    #[test]
+    fn from_parameters_bool_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Bool(true));
+        let output = Option::<bool>::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), Some(true));
+        let no_output = Option::<bool>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
+    }
+
+    #[test]
+    fn from_parameters_str_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Int(1));
+        let output = Option::<u64>::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), Some(1));
+        let no_output = Option::<u64>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
+    }
+
+    #[test]
+    fn from_parameters_int_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Str("bar".into()));
+        let output = Option::<String>::from_parameters(&mut params, "foo");
+
+        let right: String = "bar".into();
+        assert_eq!(output.unwrap(), Some(right));
+        let no_output = Option::<String>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
     }
 }
