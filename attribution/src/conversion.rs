@@ -1,4 +1,4 @@
-use crate::attr_map::ParamVal;
+use crate::params::ParamVal;
 use crate::Parameters;
 
 #[derive(Debug)]
@@ -7,7 +7,7 @@ pub enum FromParametersError {
     UnexpectedType,
 }
 
-trait FromParameters: Sized {
+pub trait FromParameters: Sized {
     fn from_parameters(
         params: &mut Parameters,
         param_name: &str,
