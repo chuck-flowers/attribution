@@ -14,3 +14,10 @@ license = "MIT"
 attribution-macros = { version = "0.1.0", path = "../attribution-macros" }
 proc-macro2 = "0.4.30"
 syn = "0.15.41"
+
+[dev-dependencies]
+quote = "0.6.13"
+
+[[example]]
+name = "ez_trace"
+crate-type = ["proc-macro"]
