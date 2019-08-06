@@ -58,6 +58,30 @@ impl Parse for Parameters {
 
 pub struct DynamicParameters(Parameters);
 
+impl DynamicParameters {
+    pub fn new() -> Self {
+        DynamicParameters::default()
+    }
+
+    pub fn get(&self, key: &str) -> Option<&ParamVal> {
+        self.0.get(key)
+    }
+
+    pub fn insert(&mut self, key: String, val: ParamVal) -> Option<ParamVal> {
+        self.0.insert(key, val)
+    }
+
+    pub fn remove(&mut self, key: &str) -> Option<ParamVal> {
+        self.0.remove(key)
+    }
+}
+
+impl Default for DynamicParameters {
+    fn default() -> Self {
+        DynamicParameters(Parameters::default())
+    }
+}
+
 impl FromParameters for DynamicParameters {
     fn from_parameters(
         params: &mut Parameters,
