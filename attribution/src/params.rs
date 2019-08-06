@@ -1,3 +1,5 @@
+use crate::conversion::FromParameters;
+use crate::conversion::FromParametersError;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use syn::parse::Parse;
@@ -51,6 +53,24 @@ impl Parse for Parameters {
         }
 
         Ok(attribute_map)
+    }
+}
+
+pub struct DynamicParameters(Parameters);
+
+impl FromParameters for DynamicParameters {
+    fn from_parameters(
+        params: &mut Parameters,
+        _param_name: &str,
+    ) -> Result<Self, FromParametersError> {
+        let mut ret = DynamicParameters(Parameters::new());
+        let keys: Vec<String> = params.0.keys().map(|s| s.into()).collect();
+        for key in keys {
+            let val = params.remove(&key).unwrap();
+            ret.0.insert(key, val);
+        }
+
+        Ok(ret)
     }
 }
 
