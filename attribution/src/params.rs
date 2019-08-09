@@ -1,5 +1,6 @@
 use crate::conversion::FromParameters;
 use crate::conversion::FromParametersError;
+use shrinkwraprs::Shrinkwrap;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use syn::parse::Parse;
@@ -8,23 +9,14 @@ use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
+#[derive(Shrinkwrap)]
+#[shrinkwrap(mutable)]
+#[shrinkwrap(unsafe_ignore_visibility)]
 pub struct Parameters(HashMap<String, ParamVal>);
 
 impl Parameters {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn get(&self, key: &str) -> Option<&ParamVal> {
-        self.0.get(key)
-    }
-
-    pub fn insert(&mut self, key: String, val: ParamVal) -> Option<ParamVal> {
-        self.0.insert(key, val)
-    }
-
-    pub fn remove(&mut self, key: &str) -> Option<ParamVal> {
-        self.0.remove(key)
     }
 }
 
@@ -56,23 +48,14 @@ impl Parse for Parameters {
     }
 }
 
+#[derive(Shrinkwrap)]
+#[shrinkwrap(mutable)]
+#[shrinkwrap(unsafe_ignore_visibility)]
 pub struct DynamicParameters(Parameters);
 
 impl DynamicParameters {
     pub fn new() -> Self {
         DynamicParameters::default()
-    }
-
-    pub fn get(&self, key: &str) -> Option<&ParamVal> {
-        self.0.get(key)
-    }
-
-    pub fn insert(&mut self, key: String, val: ParamVal) -> Option<ParamVal> {
-        self.0.insert(key, val)
-    }
-
-    pub fn remove(&mut self, key: &str) -> Option<ParamVal> {
-        self.0.remove(key)
     }
 }
 

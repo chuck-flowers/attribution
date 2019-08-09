@@ -13,6 +13,7 @@ license = "MIT"
 [dependencies]
 attribution-macros = { version = "0.1.0", path = "../attribution-macros" }
 proc-macro2 = "0.4.30"
+shrinkwraprs = "0.2.1"
 syn = "0.15.41"
 
 [dev-dependencies]
