@@ -1,5 +1,5 @@
 #![warn(clippy::all, clippy::cargo)]
-
+#![allow(clippy::multiple_crate_versions)]
 extern crate proc_macro;
 
 mod extraction;
