@@ -22,3 +22,7 @@ quote = "0.6.13"
 [[example]]
 name = "ez_trace"
 crate-type = ["proc-macro"]
+
+[[example]]
+name = "dynamic_params"
+crate-type = ["proc-macro"]
