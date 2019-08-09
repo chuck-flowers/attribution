@@ -7,7 +7,6 @@ use proc_macro::TokenStream;
 use proc_macro2::Span;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use quote::ToTokens;
 use syn::Field;
 use syn::Fields;
 use syn::Ident;
@@ -110,6 +109,7 @@ fn make_method(field: &Field) -> TokenStream2 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use quote::ToTokens;
 
     #[test]
     fn usage_test() {
