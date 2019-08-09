@@ -2,6 +2,45 @@ use crate::params::ParamVal;
 use crate::Parameters;
 
 #[derive(Debug)]
+pub enum FromParameterValueError {
+    UnexpectedType,
+}
+
+pub trait FromParameterValue: Sized {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError>;
+}
+
+impl FromParameterValue for u64 {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Int(val) = parameter_val {
+            Ok(val)
+        } else {
+            Err(FromParameterValueError::UnexpectedType)
+        }
+    }
+}
+
+impl FromParameterValue for bool {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Bool(val) = parameter_val {
+            Ok(val)
+        } else {
+            Err(FromParameterValueError::UnexpectedType)
+        }
+    }
+}
+
+impl FromParameterValue for String {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Str(val) = parameter_val {
+            Ok(val)
+        } else {
+            Err(FromParameterValueError::UnexpectedType)
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum FromParametersError {
     MissingParam { param_name: String },
     UnexpectedType,
@@ -14,36 +53,15 @@ pub trait FromParameters: Sized {
     ) -> Result<Self, FromParametersError>;
 }
 
-impl FromParameters for bool {
+impl<T: FromParameterValue> FromParameters for T {
     fn from_parameters(
         params: &mut Parameters,
         param_name: &str,
     ) -> Result<Self, FromParametersError> {
-        if let Some(param_val) = params.remove(param_name) {
-            if let ParamVal::Bool(b) = param_val {
-                Ok(b)
-            } else {
-                Err(FromParametersError::UnexpectedType)
-            }
-        } else {
-            Err(FromParametersError::MissingParam {
-                param_name: param_name.into(),
+        if let Some(parameter_val) = params.remove(param_name) {
+            T::from_parameter_value(parameter_val).map_err(|err| match err {
+                FromParameterValueError::UnexpectedType => FromParametersError::UnexpectedType,
             })
-        }
-    }
-}
-
-impl FromParameters for u64 {
-    fn from_parameters(
-        params: &mut Parameters,
-        param_name: &str,
-    ) -> Result<Self, FromParametersError> {
-        if let Some(param_val) = params.remove(param_name) {
-            if let ParamVal::Int(i) = param_val {
-                Ok(i)
-            } else {
-                Err(FromParametersError::UnexpectedType)
-            }
         } else {
             Err(FromParametersError::MissingParam {
                 param_name: param_name.into(),
@@ -58,25 +76,6 @@ impl<T: FromParameters> FromParameters for Option<T> {
         param_name: &str,
     ) -> Result<Self, FromParametersError> {
         Ok(T::from_parameters(params, param_name).ok())
-    }
-}
-
-impl FromParameters for String {
-    fn from_parameters(
-        params: &mut Parameters,
-        param_name: &str,
-    ) -> Result<Self, FromParametersError> {
-        if let Some(param_val) = params.remove(param_name) {
-            if let ParamVal::Str(s) = param_val {
-                Ok(s)
-            } else {
-                Err(FromParametersError::UnexpectedType)
-            }
-        } else {
-            Err(FromParametersError::MissingParam {
-                param_name: param_name.into(),
-            })
-        }
     }
 }
 
