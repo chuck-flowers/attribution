@@ -36,7 +36,7 @@ mod tests {
 
         let extractor = build_extractor(&field);
         let expected = quote! {
-            let foo = attr_args.remove("foo").unwrap().try_into().unwrap();
+            let foo = attribution::FromParameters::from_parameters(&mut attr_args, "foo").unwrap();
         };
 
         assert_eq!(extractor.to_string(), expected.to_string());
