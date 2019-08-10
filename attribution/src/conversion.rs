@@ -1,12 +1,28 @@
 use crate::params::ParamVal;
 use crate::Parameters;
 
+/// An error that occurs as a result of a failed conversion of a `ParameterVal`
 #[derive(Debug)]
 pub enum FromParameterValueError {
+    /// The data that was being attempted for conversion was not of the expected type.
     UnexpectedType,
 }
 
+/// A trait that is used to create a type from a provided `ParamVal`. This
+/// trait should be implemented when a type should be able to be converted from
+/// a single `ParamVal` type.
+///
+/// # Example
+/// ```
+/// use attribution::FromParameterValue;
+/// use attribution::ParamVal;
+///
+/// let param_val = ParamVal::Bool(true);
+/// let from_result = bool::from_parameter_value(param_val);
+/// assert_eq!(from_result.unwrap(), true);
+/// ```
 pub trait FromParameterValue: Sized {
+    /// Tries to create a type from the provided `ParamVal`
     fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError>;
 }
 
@@ -40,13 +56,23 @@ impl FromParameterValue for String {
     }
 }
 
+/// An error that occurs as a result of a failed conversion of a `Parameters`
+/// struct
 #[derive(Debug)]
 pub enum FromParametersError {
+    /// Indicates the error ocurred because a value for a specified parameter
+    /// was not supplied.
     MissingParam { param_name: String },
+
+    /// Indicates the error occurred because the value that was attempted for conversion
+    /// was for the incorrect type.
     UnexpectedType,
 }
 
+/// A trait that is used to extract data from a `Parameters` struct.
 pub trait FromParameters: Sized {
+    /// Try to create a type from a parameter struct (`params`) for a paramter
+    /// of a specific name (`param_name`).
     fn from_parameters(
         params: &mut Parameters,
         param_name: &str,
