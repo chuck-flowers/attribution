@@ -1,6 +1,6 @@
 [package]
 name = "attribution"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Timothy Flowers <t_chuck_flowers@yahoo.com>"]
 description = "A declarative custom attribute parsing framework"
 categories = ["development-tools::procedural-macro-helpers"]
@@ -11,7 +11,7 @@ repository = "https://github.com/chuck-flowers/attribution"
 license = "MIT"
 
 [dependencies]
-attribution-macros = { version = "0.1.0", path = "../attribution-macros" }
+attribution-macros = { version = "0.2.0", path = "../attribution-macros" }
 proc-macro2 = "0.4.30"
 shrinkwraprs = "0.2.1"
 syn = "0.15.41"
