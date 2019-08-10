@@ -1,5 +1,5 @@
 #![warn(clippy::all, clippy::cargo)]
-
+#![allow(clippy::multiple_crate_versions)]
 extern crate proc_macro;
 
 mod extraction;
@@ -65,8 +65,8 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
     };
 
     quote! {
-        impl parse::Parse for #struct_name {
-            fn parse(buffer: &parse::ParseBuffer) -> parse::Result<Self> {
+        impl syn::parse::Parse for #struct_name {
+            fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 use std::convert::TryInto;
                 let mut attr_args = attribution::Parameters::parse(buffer)?;
                 #extraction

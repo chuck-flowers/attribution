@@ -1,28 +1,22 @@
+use crate::conversion::FromParameters;
+use crate::conversion::FromParametersError;
+use shrinkwraprs::Shrinkwrap;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
-use syn::parse::Result;
 use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
 
+#[derive(Shrinkwrap)]
+#[shrinkwrap(mutable)]
+#[shrinkwrap(unsafe_ignore_visibility)]
 pub struct Parameters(HashMap<String, ParamVal>);
 
 impl Parameters {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn get(&self, key: &str) -> Option<&ParamVal> {
-        self.0.get(key)
-    }
-
-    pub fn insert(&mut self, key: String, val: ParamVal) -> Option<ParamVal> {
-        self.0.insert(key, val)
-    }
-
-    pub fn remove(&mut self, key: &str) -> Option<ParamVal> {
-        self.0.remove(key)
     }
 }
 
@@ -33,7 +27,7 @@ impl Default for Parameters {
 }
 
 impl Parse for Parameters {
-    fn parse(buffer: ParseStream) -> Result<Self> {
+    fn parse(buffer: ParseStream) -> syn::parse::Result<Self> {
         let mut attribute_map = Self::new();
 
         while !buffer.is_empty() {
@@ -51,6 +45,39 @@ impl Parse for Parameters {
         }
 
         Ok(attribute_map)
+    }
+}
+
+#[derive(Shrinkwrap)]
+#[shrinkwrap(mutable)]
+#[shrinkwrap(unsafe_ignore_visibility)]
+pub struct DynamicParameters(Parameters);
+
+impl DynamicParameters {
+    pub fn new() -> Self {
+        DynamicParameters::default()
+    }
+}
+
+impl Default for DynamicParameters {
+    fn default() -> Self {
+        DynamicParameters(Parameters::default())
+    }
+}
+
+impl FromParameters for DynamicParameters {
+    fn from_parameters(
+        params: &mut Parameters,
+        _param_name: &str,
+    ) -> Result<Self, FromParametersError> {
+        let mut ret = DynamicParameters(Parameters::new());
+        let keys: Vec<String> = params.0.keys().map(|s| s.into()).collect();
+        for key in keys {
+            let val = params.remove(&key).unwrap();
+            ret.0.insert(key, val);
+        }
+
+        Ok(ret)
     }
 }
 
@@ -99,6 +126,66 @@ impl From<&Lit> for ParamVal {
     }
 }
 
+impl From<Lit> for ParamVal {
+    fn from(lit: Lit) -> Self {
+        ParamVal::from(&lit)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TryIntoParamValError;
+
+impl TryInto<bool> for ParamVal {
+    type Error = TryIntoParamValError;
+    fn try_into(self) -> Result<bool, Self::Error> {
+        if let ParamVal::Bool(b) = self {
+            Ok(b)
+        } else {
+            Err(TryIntoParamValError {})
+        }
+    }
+}
+
+impl TryInto<u64> for ParamVal {
+    type Error = TryIntoParamValError;
+    fn try_into(self) -> Result<u64, Self::Error> {
+        if let ParamVal::Int(i) = self {
+            Ok(i)
+        } else {
+            Err(TryIntoParamValError {})
+        }
+    }
+}
+
+impl TryInto<String> for ParamVal {
+    type Error = TryIntoParamValError;
+    fn try_into(self) -> Result<String, Self::Error> {
+        if let ParamVal::Str(s) = self {
+            Ok(s)
+        } else {
+            Err(TryIntoParamValError {})
+        }
+    }
+}
+
+impl From<&str> for ParamVal {
+    fn from(src: &str) -> Self {
+        ParamVal::Str(src.into())
+    }
+}
+
+impl From<u64> for ParamVal {
+    fn from(src: u64) -> Self {
+        ParamVal::Int(src)
+    }
+}
+
+impl From<bool> for ParamVal {
+    fn from(src: bool) -> Self {
+        ParamVal::Bool(src)
+    }
+}
+
 #[cfg(test)]
 mod attr_val_tests {
 
@@ -137,5 +224,26 @@ mod attr_val_tests {
                 case.2
             );
         }
+    }
+
+    #[test]
+    fn bool_conversion() {
+        let left = ParamVal::Bool(true).try_into();
+        let right = Ok(true);
+        assert_eq!(left, right)
+    }
+
+    #[test]
+    fn int_conversion() {
+        let left = ParamVal::Int(1).try_into();
+        let right = Ok(1);
+        assert_eq!(left, right)
+    }
+
+    #[test]
+    fn str_conversion() {
+        let left: Result<String, TryIntoParamValError> = ParamVal::Str("hello".into()).try_into();
+        let right: Result<String, TryIntoParamValError> = Ok("hello".into());
+        assert_eq!(left, right)
     }
 }

@@ -1,83 +1,175 @@
-use crate::attr_map::ParamVal;
-use std::convert::TryInto;
+use crate::params::ParamVal;
+use crate::Parameters;
 
-#[derive(Debug, PartialEq)]
-pub struct TryIntoParamValError;
+/// An error that occurs as a result of a failed conversion of a `ParameterVal`
+#[derive(Debug)]
+pub enum FromParameterValueError {
+    /// The data that was being attempted for conversion was not of the expected type.
+    UnexpectedType,
+}
 
-impl TryInto<bool> for ParamVal {
-    type Error = TryIntoParamValError;
-    fn try_into(self) -> Result<bool, Self::Error> {
-        if let ParamVal::Bool(b) = self {
-            Ok(b)
+/// A trait that is used to create a type from a provided `ParamVal`. This
+/// trait should be implemented when a type should be able to be converted from
+/// a single `ParamVal` type.
+///
+/// # Example
+/// ```
+/// use attribution::FromParameterValue;
+/// use attribution::ParamVal;
+///
+/// let param_val = ParamVal::Bool(true);
+/// let from_result = bool::from_parameter_value(param_val);
+/// assert_eq!(from_result.unwrap(), true);
+/// ```
+pub trait FromParameterValue: Sized {
+    /// Tries to create a type from the provided `ParamVal`
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError>;
+}
+
+impl FromParameterValue for u64 {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Int(val) = parameter_val {
+            Ok(val)
         } else {
-            Err(TryIntoParamValError {})
+            Err(FromParameterValueError::UnexpectedType)
         }
     }
 }
 
-impl TryInto<u64> for ParamVal {
-    type Error = TryIntoParamValError;
-    fn try_into(self) -> Result<u64, Self::Error> {
-        if let ParamVal::Int(i) = self {
-            Ok(i)
+impl FromParameterValue for bool {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Bool(val) = parameter_val {
+            Ok(val)
         } else {
-            Err(TryIntoParamValError {})
+            Err(FromParameterValueError::UnexpectedType)
         }
     }
 }
 
-impl TryInto<String> for ParamVal {
-    type Error = TryIntoParamValError;
-    fn try_into(self) -> Result<String, Self::Error> {
-        if let ParamVal::Str(s) = self {
-            Ok(s)
+impl FromParameterValue for String {
+    fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
+        if let ParamVal::Str(val) = parameter_val {
+            Ok(val)
         } else {
-            Err(TryIntoParamValError {})
+            Err(FromParameterValueError::UnexpectedType)
         }
     }
 }
 
-impl From<&str> for ParamVal {
-    fn from(src: &str) -> Self {
-        ParamVal::Str(src.into())
+/// An error that occurs as a result of a failed conversion of a `Parameters`
+/// struct
+#[derive(Debug)]
+pub enum FromParametersError {
+    /// Indicates the error ocurred because a value for a specified parameter
+    /// was not supplied.
+    MissingParam { param_name: String },
+
+    /// Indicates the error occurred because the value that was attempted for conversion
+    /// was for the incorrect type.
+    UnexpectedType,
+}
+
+/// A trait that is used to extract data from a `Parameters` struct.
+pub trait FromParameters: Sized {
+    /// Try to create a type from a parameter struct (`params`) for a paramter
+    /// of a specific name (`param_name`).
+    fn from_parameters(
+        params: &mut Parameters,
+        param_name: &str,
+    ) -> Result<Self, FromParametersError>;
+}
+
+impl<T: FromParameterValue> FromParameters for T {
+    fn from_parameters(
+        params: &mut Parameters,
+        param_name: &str,
+    ) -> Result<Self, FromParametersError> {
+        if let Some(parameter_val) = params.remove(param_name) {
+            T::from_parameter_value(parameter_val).map_err(|err| match err {
+                FromParameterValueError::UnexpectedType => FromParametersError::UnexpectedType,
+            })
+        } else {
+            Err(FromParametersError::MissingParam {
+                param_name: param_name.into(),
+            })
+        }
     }
 }
 
-impl From<u64> for ParamVal {
-    fn from(src: u64) -> Self {
-        ParamVal::Int(src)
-    }
-}
-
-impl From<bool> for ParamVal {
-    fn from(src: bool) -> Self {
-        ParamVal::Bool(src)
+impl<T: FromParameters> FromParameters for Option<T> {
+    fn from_parameters(
+        params: &mut Parameters,
+        param_name: &str,
+    ) -> Result<Self, FromParametersError> {
+        Ok(T::from_parameters(params, param_name).ok())
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
-    use crate::attr_map::ParamVal;
+    use crate::Parameters;
 
     #[test]
-    fn bool_conversion() {
-        let left = ParamVal::Bool(true).try_into();
-        let right = Ok(true);
-        assert_eq!(left, right)
+    fn from_parameters_bool() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Bool(true));
+        let output = bool::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), true);
     }
 
     #[test]
-    fn int_conversion() {
-        let left = ParamVal::Int(1).try_into();
-        let right = Ok(1);
-        assert_eq!(left, right)
+    fn from_parameters_str() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Int(1));
+        let output = u64::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), 1);
     }
 
     #[test]
-    fn str_conversion() {
-        let left: Result<String, TryIntoParamValError> = ParamVal::Str("hello".into()).try_into();
-        let right: Result<String, TryIntoParamValError> = Ok("hello".into());
-        assert_eq!(left, right)
+    fn from_parameters_int() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Str("bar".into()));
+        let output = String::from_parameters(&mut params, "foo");
+
+        let right: String = "bar".into();
+        assert_eq!(output.unwrap(), right);
+    }
+
+    #[test]
+    fn from_parameters_bool_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Bool(true));
+        let output = Option::<bool>::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), Some(true));
+        let no_output = Option::<bool>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
+    }
+
+    #[test]
+    fn from_parameters_str_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Int(1));
+        let output = Option::<u64>::from_parameters(&mut params, "foo");
+
+        assert_eq!(output.unwrap(), Some(1));
+        let no_output = Option::<u64>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
+    }
+
+    #[test]
+    fn from_parameters_int_option() {
+        let mut params = Parameters::new();
+        params.insert("foo".into(), ParamVal::Str("bar".into()));
+        let output = Option::<String>::from_parameters(&mut params, "foo");
+
+        let right: String = "bar".into();
+        assert_eq!(output.unwrap(), Some(right));
+        let no_output = Option::<String>::from_parameters(&mut params, "foo");
+        assert_eq!(no_output.unwrap(), None);
     }
 }
