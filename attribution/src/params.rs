@@ -5,9 +5,11 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
+use syn::token::Token;
 use syn::Lit;
 use syn::Meta;
 use syn::NestedMeta;
+use syn::Token;
 
 #[derive(Shrinkwrap)]
 #[shrinkwrap(mutable)]
@@ -33,7 +35,26 @@ impl Parse for Parameters {
         while !buffer.is_empty() {
             // Parse the next key value pair
             if let NestedMeta::Meta(Meta::NameValue(nv)) = buffer.parse()? {
-                let param_name = nv.ident.to_string();
+                // calculate the parameter name
+                let path = nv.path;
+                let mut param_name = String::new();
+
+                // Apend the leading colon to the param_name (if there is one)
+                if path.leading_colon.is_some() {
+                    param_name.push_str(<Token![::]>::display());
+                }
+
+                // Append the first segment to the param_name (if there is one)
+                if let Some(first) = path.segments.first() {
+                    param_name.push_str(&first.ident.to_string());
+                }
+
+                // Append the remaining segments to the param_name
+                for path_seg in path.segments.iter().skip(1) {
+                    param_name.push_str(<Token![::]>::display());
+                    param_name.push_str(&path_seg.ident.to_string());
+                }
+
                 let param_value = ParamVal::from(&nv.lit);
                 attribute_map.insert(param_name, param_value);
             }
@@ -91,7 +112,7 @@ mod attr_map_tests {
     #[test]
     fn parse_test() {
         let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
-        if let proc_macro2::TokenTree::Group(group) = attr.tts.into_iter().next().unwrap() {
+        if let proc_macro2::TokenTree::Group(group) = attr.tokens.into_iter().next().unwrap() {
             let attr_args: Parameters = parse2(group.stream()).unwrap();
             let foo_val = attr_args.get("foo");
             let bar_val = attr_args.get("bar");
@@ -119,7 +140,7 @@ impl From<&Lit> for ParamVal {
     fn from(lit: &Lit) -> Self {
         match lit {
             Lit::Bool(b) => ParamVal::Bool(b.value),
-            Lit::Int(i) => ParamVal::Int(i.value()),
+            Lit::Int(i) => ParamVal::Int(i.base10_parse::<u64>().unwrap()),
             Lit::Str(s) => ParamVal::Str(s.value()),
             _ => unimplemented!(),
         }
@@ -202,7 +223,7 @@ mod attr_val_tests {
                 "string literal",
             ),
             (
-                Lit::Int(syn::LitInt::new(1, syn::IntSuffix::None, Span::call_site())),
+                Lit::Int(syn::LitInt::new("1", Span::call_site())),
                 ParamVal::Int(1),
                 "int literal",
             ),

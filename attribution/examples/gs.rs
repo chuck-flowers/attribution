@@ -60,7 +60,7 @@ fn add_methods(tagged_struct: ItemStruct, parameters: DynamicParameters) -> Toke
             })
             .map(make_method);
 
-        let impl_block_name = tagged_struct.ident.clone();
+        let impl_block_name = &tagged_struct.ident;
         quote! {
             #tagged_struct
 
@@ -76,14 +76,11 @@ fn add_methods(tagged_struct: ItemStruct, parameters: DynamicParameters) -> Toke
 fn make_method(field: &Field) -> TokenStream2 {
     let field_ident = field.ident.as_ref().unwrap();
     let field_type = &field.ty;
-    let setter_field = field_ident.clone();
-    let setter_type = field_type.clone();
     let setter_name = Ident::new(
         &format!("set_{}", field_ident.to_string()),
         Span::call_site(),
     );
 
-    let getter_field = field_ident.clone();
     let getter_type = syn::TypeReference {
         and_token: <syn::Token![&]>::default(),
         lifetime: None,
@@ -97,11 +94,11 @@ fn make_method(field: &Field) -> TokenStream2 {
 
     quote! {
         fn #getter_name(&self) -> #getter_type {
-            self.#getter_field
+            self.#field_ident
         }
 
-        fn #setter_name(&mut self, new_val: #setter_type) {
-            self.#setter_field = new_val;
+        fn #setter_name(&mut self, new_val: #field_type) {
+            self.#field_ident = new_val;
         }
     }
 }

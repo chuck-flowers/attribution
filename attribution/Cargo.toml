@@ -12,12 +12,10 @@ license = "MIT"
 
 [dependencies]
 attribution-macros = { version = "0.2.0", path = "../attribution-macros" }
-proc-macro2 = "0.4.30"
+proc-macro2 = "^1.0.0"
+quote = "^1.0.0"
 shrinkwraprs = "0.2.1"
-syn = "0.15.41"
-
-[dev-dependencies]
-quote = "0.6.13"
+syn = { version = "^1.0.0", features = ["full"] }
 
 [[example]]
 name = "ez_trace"
