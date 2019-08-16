@@ -11,12 +11,15 @@ use syn::Meta;
 use syn::NestedMeta;
 use syn::Token;
 
+/// Represents the mapping of parameter names to parameter values.
 #[derive(Shrinkwrap)]
 #[shrinkwrap(mutable)]
 #[shrinkwrap(unsafe_ignore_visibility)]
 pub struct Parameters(HashMap<String, ParamVal>);
 
 impl Parameters {
+    /// Constructs a new empty `Parameters` object. Same as calling
+    /// `Parameters::default()`
     pub fn new() -> Self {
         Self::default()
     }
@@ -69,6 +72,8 @@ impl Parse for Parameters {
     }
 }
 
+/// An object that is used to aggregate any remaining parameters into
+/// the struct tagged with `attribution::attr_args`.
 #[derive(Shrinkwrap)]
 #[shrinkwrap(mutable)]
 #[shrinkwrap(unsafe_ignore_visibility)]
@@ -129,6 +134,10 @@ mod attr_map_tests {
     }
 }
 
+/// Represents a value for a parameter name within `Parameters` struct.
+/// The parameter value is the value that appears to the right of the equal
+/// sign (e.g. `"value"` is the `ParamVal` in the following example
+/// `#[example(name = "value")]`)
 #[derive(Debug, PartialEq)]
 pub enum ParamVal {
     Bool(bool),
@@ -153,6 +162,9 @@ impl From<Lit> for ParamVal {
     }
 }
 
+/// An error that is received as a result of not being able to convert a `ParamVal`
+/// into a given type. This is due to the `ParmaVal` not being of the correct variant
+/// for the type that the `ParamVal` is being converted into.
 #[derive(Debug, PartialEq)]
 pub struct TryIntoParamValError;
 

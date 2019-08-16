@@ -15,6 +15,8 @@ use syn::Ident;
 use syn::Item;
 use syn::ItemStruct;
 
+/// The attribute that is used to generate the parsing logic for a struct
+/// representing the parameters for an attribute.
 #[proc_macro_attribute]
 pub fn attr_args(
     _attr: proc_macro::TokenStream,
