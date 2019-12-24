@@ -16,11 +16,3 @@ proc-macro2 = "^1.0.0"
 quote = "^1.0.0"
 shrinkwraprs = "0.2.1"
 syn = { version = "^1.0.0", features = ["full"] }
-
-[[example]]
-name = "ez_trace"
-crate-type = ["proc-macro"]
-
-[[example]]
-name = "gs"
-crate-type = ["proc-macro"]
