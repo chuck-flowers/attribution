@@ -70,7 +70,7 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
         impl syn::parse::Parse for #struct_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 use std::convert::TryInto;
-                let mut attr_args = attribution::Parameters::parse(buffer)?;
+                let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
                 #extraction
                 #struct_return
             }
