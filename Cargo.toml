@@ -2,5 +2,7 @@
 
 members = [
     "attribution",
+    "attribution-examples/ez-trace/ez-trace-macros",
+    "attribution-examples/ez-trace/fibonacci",
     "attribution-macros"
 ]
