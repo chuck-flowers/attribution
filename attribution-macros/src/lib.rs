@@ -15,6 +15,8 @@ use syn::Ident;
 use syn::Item;
 use syn::ItemStruct;
 
+/// The attribute that is used to generate the parsing logic for a struct
+/// representing the parameters for an attribute.
 #[proc_macro_attribute]
 pub fn attr_args(
     _attr: proc_macro::TokenStream,
@@ -68,7 +70,7 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
         impl syn::parse::Parse for #struct_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 use std::convert::TryInto;
-                let mut attr_args = attribution::Parameters::parse(buffer)?;
+                let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
                 #extraction
                 #struct_return
             }
