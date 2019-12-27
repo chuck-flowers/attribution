@@ -6,37 +6,27 @@ mod extraction;
 mod field_spec;
 
 use field_spec::FieldSpec;
-use proc_macro2::TokenStream;
+use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use std::convert::TryFrom;
 use syn::parse_macro_input;
 use syn::Fields;
-use syn::Ident;
 use syn::Item;
+use syn::ItemEnum;
 use syn::ItemStruct;
 
 /// The attribute that is used to generate the parsing logic for a struct
 /// representing the parameters for an attribute.
 #[proc_macro_attribute]
-pub fn attr_args(
-    _attr: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    // Parse the inputs
-    let input_struct = if let Item::Struct(struct_data) = parse_macro_input!(input as Item) {
-        struct_data
-    } else {
-        panic!("The attribute can only be applied to structs")
+pub fn attr_args(_attr: TokenStream, input: TokenStream) -> TokenStream {
+    let output = match parse_macro_input!(input as Item) {
+        Item::Struct(input_struct) => impl_parse_for_struct(&input_struct),
+        Item::Enum(input_enum) => impl_parse_for_enum(&input_enum),
+        _ => panic!("The attribute can only be applied to structs"),
     };
 
-    let fields = extract_fields(&input_struct);
-    let output = impl_parse(&input_struct.ident, &fields);
-
-    (quote! {
-        #input_struct
-        #output
-    })
-    .into()
+    output.into()
 }
 
 fn extract_fields(input_struct: &ItemStruct) -> Vec<FieldSpec> {
@@ -52,7 +42,8 @@ fn extract_fields(input_struct: &ItemStruct) -> Vec<FieldSpec> {
     }
 }
 
-fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
+fn impl_parse_for_struct(input_struct: &ItemStruct) -> TokenStream2 {
+    let fields = extract_fields(&input_struct);
     let extractors = fields.iter().map(extraction::build_extractor);
 
     let extraction = quote! {
@@ -60,6 +51,7 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
     };
 
     let idents = fields.iter().map(FieldSpec::ident);
+    let struct_name = &input_struct.ident;
     let struct_return = quote! {
         Ok(#struct_name {
             #(#idents),*
@@ -67,6 +59,8 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
     };
 
     quote! {
+        #input_struct
+
         impl syn::parse::Parse for #struct_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 use std::convert::TryInto;
@@ -76,4 +70,8 @@ fn impl_parse(struct_name: &Ident, fields: &[FieldSpec]) -> TokenStream {
             }
         }
     }
+}
+
+fn impl_parse_for_enum(input_enum: &ItemEnum) -> TokenStream2 {
+    todo!()
 }
