@@ -6,7 +6,7 @@ fn main() {
     println!("Finished");
 }
 
-#[ez_trace("{name}({args})", "{name}({args}) -> {result}")]
+#[ez_trace(start = "{name}({args})", end = "{name}({args}) -> {result}")]
 fn fibonacci(n: u32) -> u32 {
     if n == 0 || n == 1 {
         n
