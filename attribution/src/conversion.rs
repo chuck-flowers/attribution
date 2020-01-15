@@ -1,3 +1,4 @@
+use crate::params::ParamKey;
 use crate::params::ParamVal;
 use crate::Parameters;
 
@@ -28,7 +29,7 @@ pub trait FromParameterValue: Sized {
 
 impl FromParameterValue for u64 {
     fn from_parameter_value(parameter_val: ParamVal) -> Result<Self, FromParameterValueError> {
-        if let ParamVal::Int(val) = parameter_val {
+        if let ParamVal::UnsignedInt(val) = parameter_val {
             Ok(val)
         } else {
             Err(FromParameterValueError::UnexpectedType)
@@ -62,7 +63,7 @@ impl FromParameterValue for String {
 pub enum FromParametersError {
     /// Indicates the error ocurred because a value for a specified parameter
     /// was not supplied.
-    MissingParam { param_name: String },
+    MissingParam { param_name: ParamKey },
 
     /// Indicates the error occurred because the value that was attempted for conversion
     /// was for the incorrect type.
@@ -75,22 +76,22 @@ pub trait FromParameters: Sized {
     /// of a specific name (`param_name`).
     fn from_parameters(
         params: &mut Parameters,
-        param_name: &str,
+        param_name: &ParamKey,
     ) -> Result<Self, FromParametersError>;
 }
 
 impl<T: FromParameterValue> FromParameters for T {
     fn from_parameters(
         params: &mut Parameters,
-        param_name: &str,
+        param_name: &ParamKey,
     ) -> Result<Self, FromParametersError> {
-        if let Some(parameter_val) = params.remove(param_name) {
+        if let Some(parameter_val) = params.remove(&param_name.to_owned().into()) {
             T::from_parameter_value(parameter_val).map_err(|err| match err {
                 FromParameterValueError::UnexpectedType => FromParametersError::UnexpectedType,
             })
         } else {
             Err(FromParametersError::MissingParam {
-                param_name: param_name.into(),
+                param_name: param_name.clone(),
             })
         }
     }
@@ -99,7 +100,7 @@ impl<T: FromParameterValue> FromParameters for T {
 impl<T: FromParameters> FromParameters for Option<T> {
     fn from_parameters(
         params: &mut Parameters,
-        param_name: &str,
+        param_name: &ParamKey,
     ) -> Result<Self, FromParametersError> {
         Ok(T::from_parameters(params, param_name).ok())
     }
@@ -113,27 +114,27 @@ mod tests {
 
     #[test]
     fn from_parameters_bool() {
-        let mut params = Parameters::new();
+        let mut params = Parameters::default();
         params.insert("foo".into(), ParamVal::Bool(true));
-        let output = bool::from_parameters(&mut params, "foo");
+        let output = bool::from_parameters(&mut params, &"foo".into());
 
         assert_eq!(output.unwrap(), true);
     }
 
     #[test]
     fn from_parameters_str() {
-        let mut params = Parameters::new();
-        params.insert("foo".into(), ParamVal::Int(1));
-        let output = u64::from_parameters(&mut params, "foo");
+        let mut params = Parameters::default();
+        params.insert("foo".into(), ParamVal::UnsignedInt(1));
+        let output = u64::from_parameters(&mut params, &"foo".into());
 
         assert_eq!(output.unwrap(), 1);
     }
 
     #[test]
     fn from_parameters_int() {
-        let mut params = Parameters::new();
+        let mut params = Parameters::default();
         params.insert("foo".into(), ParamVal::Str("bar".into()));
-        let output = String::from_parameters(&mut params, "foo");
+        let output = String::from_parameters(&mut params, &"foo".into());
 
         let right: String = "bar".into();
         assert_eq!(output.unwrap(), right);
@@ -141,35 +142,35 @@ mod tests {
 
     #[test]
     fn from_parameters_bool_option() {
-        let mut params = Parameters::new();
+        let mut params = Parameters::default();
         params.insert("foo".into(), ParamVal::Bool(true));
-        let output = Option::<bool>::from_parameters(&mut params, "foo");
+        let output = Option::<bool>::from_parameters(&mut params, &"foo".into());
 
         assert_eq!(output.unwrap(), Some(true));
-        let no_output = Option::<bool>::from_parameters(&mut params, "foo");
+        let no_output = Option::<bool>::from_parameters(&mut params, &"foo".into());
         assert_eq!(no_output.unwrap(), None);
     }
 
     #[test]
     fn from_parameters_str_option() {
-        let mut params = Parameters::new();
-        params.insert("foo".into(), ParamVal::Int(1));
-        let output = Option::<u64>::from_parameters(&mut params, "foo");
+        let mut params = Parameters::default();
+        params.insert("foo".into(), ParamVal::UnsignedInt(1));
+        let output = Option::<u64>::from_parameters(&mut params, &"foo".into());
 
         assert_eq!(output.unwrap(), Some(1));
-        let no_output = Option::<u64>::from_parameters(&mut params, "foo");
+        let no_output = Option::<u64>::from_parameters(&mut params, &"foo".into());
         assert_eq!(no_output.unwrap(), None);
     }
 
     #[test]
     fn from_parameters_int_option() {
-        let mut params = Parameters::new();
+        let mut params = Parameters::default();
         params.insert("foo".into(), ParamVal::Str("bar".into()));
-        let output = Option::<String>::from_parameters(&mut params, "foo");
+        let output = Option::<String>::from_parameters(&mut params, &"foo".into());
 
         let right: String = "bar".into();
         assert_eq!(output.unwrap(), Some(right));
-        let no_output = Option::<String>::from_parameters(&mut params, "foo");
+        let no_output = Option::<String>::from_parameters(&mut params, &"foo".into());
         assert_eq!(no_output.unwrap(), None);
     }
 }
