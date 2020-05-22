@@ -16,11 +16,11 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse_macro_input;
 use syn::parse_quote;
+use syn::Ident;
 use syn::Item;
 use syn::ItemEnum;
 use syn::ItemFn;
 use syn::ItemStruct;
-use syn::Ident;
 use syn::Variant;
 
 /// The attribute that is used to generate the parsing logic for a struct
@@ -67,7 +67,10 @@ fn impl_parse_for_enum(input_enum: ItemEnum) -> TokenStream2 {
     let parser_idents = build_variant_parser_idents(&input_enum);
 
     // Builds a function used to try to parse each variant of the enum
-    let parser_decls = input_enum.variants.iter().map(|variant| build_variant_parser(&input_enum.ident, variant));
+    let parser_decls = input_enum
+        .variants
+        .iter()
+        .map(|variant| build_variant_parser(&input_enum.ident, variant));
 
     quote! {
 
@@ -106,6 +109,7 @@ fn build_variant_parser(enum_name: &Ident, variant: &Variant) -> ItemFn {
     let constructor = build_variant_constructor(enum_name, variant);
 
     parse_quote! {
+        #[allow(non_snake_case)]
         fn #parser_ident(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<#enum_name> {
             let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
 
