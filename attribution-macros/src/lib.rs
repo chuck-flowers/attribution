@@ -12,7 +12,6 @@ use self::extraction::build_extractors;
 use self::identifiers::build_variant_parser_ident;
 use self::identifiers::build_variant_parser_idents;
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse_macro_input;
 use syn::parse_quote;
@@ -20,6 +19,7 @@ use syn::Ident;
 use syn::Item;
 use syn::ItemEnum;
 use syn::ItemFn;
+use syn::ItemImpl;
 use syn::ItemStruct;
 use syn::Variant;
 
@@ -28,16 +28,25 @@ use syn::Variant;
 #[proc_macro_attribute]
 pub fn attr_args(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let output = match parse_macro_input!(input as Item) {
-        Item::Struct(input_struct) => impl_parse_for_struct(input_struct),
-        Item::Enum(input_enum) => impl_parse_for_enum(input_enum),
-        _ => panic!("The attribute can only be applied to structs"),
+        Item::Struct(input_struct) => {
+            let impl_item = impl_parse_for_struct(&input_struct);
+            quote! { #input_struct #impl_item }
+        }
+        Item::Enum(input_enum) => {
+            let impl_item = impl_parse_for_enum(&input_enum);
+            quote! {
+                #input_enum
+                #impl_item
+            }
+        }
+        _ => panic!("The attribute can only be applied to structs and enums"),
     };
 
     output.into()
 }
 
 /// Creates the impl body for a tagged struct
-fn impl_parse_for_struct(input_struct: ItemStruct) -> TokenStream2 {
+fn impl_parse_for_struct(input_struct: &ItemStruct) -> ItemImpl {
     let struct_name = &input_struct.ident;
 
     // Build the statements that pull out the field values from the Parameters
@@ -46,9 +55,7 @@ fn impl_parse_for_struct(input_struct: ItemStruct) -> TokenStream2 {
     // Build the statement that constructs the struct
     let struct_return = build_struct_constructor(&input_struct);
 
-    quote! {
-        #input_struct
-
+    parse_quote! {
         impl syn::parse::Parse for #struct_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                 let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
@@ -62,7 +69,7 @@ fn impl_parse_for_struct(input_struct: ItemStruct) -> TokenStream2 {
 }
 
 /// Creates the impl body for a tagged enum
-fn impl_parse_for_enum(input_enum: ItemEnum) -> TokenStream2 {
+fn impl_parse_for_enum(input_enum: &ItemEnum) -> ItemImpl {
     let enum_name = &input_enum.ident;
     let parser_idents = build_variant_parser_idents(&input_enum);
 
@@ -72,9 +79,7 @@ fn impl_parse_for_enum(input_enum: ItemEnum) -> TokenStream2 {
         .iter()
         .map(|variant| build_variant_parser(&input_enum.ident, variant));
 
-    quote! {
-
-        #input_enum
+    parse_quote! {
 
         impl syn::parse::Parse for #enum_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
@@ -132,10 +137,8 @@ mod tests {
             struct Foo(u64, u64);
         };
 
-        let actual = impl_parse_for_struct(input_struct);
-        let expected = quote! {
-            struct Foo(u64, u64);
-
+        let actual = impl_parse_for_struct(&input_struct);
+        let expected: ItemImpl = parse_quote! {
             impl syn::parse::Parse for Foo {
                 fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                     let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
@@ -148,6 +151,10 @@ mod tests {
             }
         };
 
-        assert_eq!(expected.to_string(), actual.to_string());
+        assert_eq!(
+            expected, actual,
+            "Expected: `{:#?}`\nActual: `{:#?}`",
+            expected, actual
+        );
     }
 }
