@@ -1,8 +1,9 @@
-use proc_macro2::Span as Span2;
 use syn::parse_quote;
+use syn::spanned::Spanned;
 use syn::Field;
 use syn::Fields;
 use syn::Ident;
+use syn::Lit;
 use syn::LitInt;
 use syn::LitStr;
 use syn::Stmt;
@@ -15,17 +16,21 @@ pub fn build_extractors<'a>(fields: &'a Fields) -> impl Iterator<Item = Stmt> + 
 }
 
 fn build_extractor(position: usize, field: &Field) -> Stmt {
+    let field_span = field.span();
+
     if let Some(ident) = &field.ident {
-        let field_key = LitStr::new(&ident.to_string(), Span2::call_site());
+        let lit_str = LitStr::new(&ident.to_string(), field_span);
+        let field_key = Lit::Str(lit_str);
+
         parse_quote! {
             let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into()).unwrap();
         }
     } else {
         let ident_name = format!("_{}", position);
-        let ident = Ident::new(&ident_name, Span2::call_site());
+        let ident = Ident::new(&ident_name, field_span);
 
-        let unnamed_key = format!("{}usize", position);
-        let field_key = LitInt::new(&unnamed_key, Span2::call_site());
+        let lit_int = LitInt::new(&format!("{}usize", position), field_span);
+        let field_key = Lit::Int(lit_int);
         parse_quote! {
             let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into()).unwrap();
         }
@@ -37,7 +42,6 @@ mod tests {
 
     use super::*;
     use proc_macro2::Span;
-    use quote::ToTokens;
     use syn::parse_quote;
     use syn::Field;
 
@@ -72,10 +76,7 @@ mod tests {
             let foo = attribution::FromParameters::from_parameters(&mut attr_args, &"foo".into()).unwrap();
         };
 
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -87,9 +88,6 @@ mod tests {
             let _0 = attribution::FromParameters::from_parameters(&mut attr_args, &0usize.into()).unwrap();
         };
 
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(actual, expected);
     }
 }

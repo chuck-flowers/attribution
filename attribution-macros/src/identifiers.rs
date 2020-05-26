@@ -15,7 +15,7 @@ pub fn build_variant_parser_idents<'a>(
 }
 
 pub fn build_variant_parser_ident(variant: &Variant) -> Ident {
-    let ident_value = format!("parse_{}", variant.ident.to_string());
+    let ident_value = format!("parse_{}", variant.ident);
     Ident::new(&ident_value, variant.ident.span())
 }
 

@@ -1,5 +1,5 @@
 use crate::identifiers::build_unnamed_idents;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse_quote;
 use syn::punctuated::Punctuated;
@@ -12,7 +12,7 @@ use syn::ItemStruct;
 use syn::Token;
 use syn::Variant;
 
-pub fn build_struct_constructor(input_struct: &ItemStruct) -> TokenStream2 {
+pub fn build_struct_constructor(input_struct: &ItemStruct) -> Expr {
     let struct_name = &input_struct.ident;
 
     let ctor_body = match &input_struct.fields {
@@ -21,7 +21,7 @@ pub fn build_struct_constructor(input_struct: &ItemStruct) -> TokenStream2 {
         Fields::Unit => quote! { {} },
     };
 
-    quote! {
+    parse_quote! {
         Ok(#struct_name #ctor_body)
     }
 }
@@ -41,14 +41,14 @@ pub fn build_variant_constructor(enum_name: &Ident, variant: &Variant) -> Expr {
 }
 
 /// Builds the constructor body for a struct with named fields.
-fn named_constructor_body(FieldsNamed { named, .. }: &FieldsNamed) -> TokenStream2 {
+fn named_constructor_body(FieldsNamed { named, .. }: &FieldsNamed) -> TokenStream {
     let idents: Punctuated<&Ident, Token![,]> =
         named.iter().map(|el| el.ident.as_ref().unwrap()).collect();
-    quote! { { #idents } }
+    parse_quote! { { #idents } }
 }
 
 /// Builds the constructor body for a struct with unnamed fields.
-fn unnamed_constructor_body(FieldsUnnamed { unnamed, .. }: &FieldsUnnamed) -> TokenStream2 {
+fn unnamed_constructor_body(FieldsUnnamed { unnamed, .. }: &FieldsUnnamed) -> TokenStream {
     let idents: Punctuated<Ident, Token![,]> = build_unnamed_idents(unnamed.len()).collect();
     quote! { (#idents) }
 }
@@ -57,7 +57,6 @@ fn unnamed_constructor_body(FieldsUnnamed { unnamed, .. }: &FieldsUnnamed) -> To
 mod tests {
 
     use super::*;
-    use quote::ToTokens;
 
     #[test]
     fn build_struct_constructor_test() {
@@ -70,11 +69,15 @@ mod tests {
         };
 
         let actual = build_struct_constructor(&input_struct);
-        let expected = quote! {
+        let expected: Expr = parse_quote! {
             Ok(Foo { a, b, c })
         };
 
-        assert_eq!(expected.to_string(), actual.to_string());
+        assert_eq!(
+            expected, actual,
+            "\nExpected: {:#?}\nActual: {:#?}",
+            expected, actual
+        )
     }
 
     #[test]
@@ -86,13 +89,14 @@ mod tests {
 
         let actual = build_variant_constructor(&enum_ident, &variant);
         let expected: Expr = parse_quote! {
-            EnumName::Foo(_0, _1, _2)
+            Ok(EnumName::Foo(_0, _1, _2))
         };
 
         assert_eq!(
-            expected.to_token_stream().to_string(),
-            actual.to_token_stream().to_string()
-        );
+            expected, actual,
+            "\nExpected: {:#?}\nActual: {:#?}",
+            expected, actual
+        )
     }
 
     #[test]
@@ -106,7 +110,7 @@ mod tests {
             { a, b, c }
         };
 
-        assert_eq!(expected.to_string(), actual.to_string());
+        assert_eq!(expected.to_string(), actual.to_string())
     }
 
     #[test]
