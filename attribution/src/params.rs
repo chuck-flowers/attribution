@@ -3,20 +3,20 @@ mod values;
 
 pub use self::keys::ParamKey;
 pub use self::values::ParamVal;
+pub use self::values::TryIntoParamValError;
 use crate::conversion::FromParameters;
 use crate::conversion::FromParametersError;
-use quote::ToTokens;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
-use syn::punctuated::Punctuated;
-use syn::Meta;
-use syn::NestedMeta;
+use syn::parse::Result as ParseResult;
+use syn::Ident;
+use syn::Token;
 
 /// Represents the mapping of parameter names to parameter values.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Parameters(HashMap<ParamKey, ParamVal>);
 
 impl Deref for Parameters {
@@ -33,32 +33,42 @@ impl DerefMut for Parameters {
 }
 
 impl Parse for Parameters {
-    fn parse(buffer: ParseStream) -> syn::parse::Result<Self> {
-        let mut attribute_map = Self::default();
+    fn parse(input: ParseStream) -> syn::parse::Result<Self> {
+        let mut params = Parameters::default();
 
-        let list: Punctuated<NestedMeta, syn::Token![,]> = Punctuated::parse_terminated(buffer)?;
+        let mut pos = 0;
+        while !input.is_empty() {
+            let (key, val) = parse_kv(input)?;
+            let key = key
+                .map(|i| ParamKey::Named(i.to_string()))
+                .unwrap_or_else(|| ParamKey::Unnamed(pos));
+            params.insert(key, val);
 
-        for (i, el) in list.into_iter().enumerate() {
-            let (key, val) = match el {
-                NestedMeta::Meta(meta) => {
-                    if let Meta::NameValue(nv) = meta {
-                        let mut key_name = String::new();
-                        for token in nv.path.to_token_stream() {
-                            key_name.push_str(&token.to_string());
-                        }
+            if input.peek(Token!(,)) {
+                input.parse::<Token!(,)>()?;
+            }
 
-                        (key_name.into(), nv.lit.into())
-                    } else {
-                        continue;
-                    }
-                }
-                NestedMeta::Lit(lit) => (i.into(), lit.into()),
-            };
-
-            attribute_map.0.insert(key, val);
+            pos += 1;
         }
 
-        Ok(attribute_map)
+        Ok(params)
+    }
+}
+
+fn parse_kv(input: ParseStream) -> ParseResult<(Option<Ident>, ParamVal)> {
+    match input.parse::<Ident>() {
+        Ok(i) => match input.parse::<Token!(=)>() {
+            Ok(_) => {
+                let val = input.parse()?;
+                Ok((Some(i), val))
+            }
+
+            Err(_) => Ok((Some(i), ParamVal::Bool(true))),
+        },
+        Err(_) => {
+            let val = input.parse()?;
+            Ok((None, val))
+        }
     }
 }
 
@@ -81,7 +91,10 @@ impl DerefMut for DynamicParameters {
 }
 
 impl FromParameters for DynamicParameters {
-    fn from_parameters(params: &mut Parameters, _: &ParamKey) -> Result<Self, FromParametersError> {
+    fn from_parameters<'a>(
+        params: &mut Parameters,
+        _: &'a ParamKey,
+    ) -> Result<Self, FromParametersError<'a>> {
         let mut ret = DynamicParameters(Parameters::default());
         let keys: Vec<_> = params.0.keys().map(|key| key.clone()).collect();
         for key in keys {
@@ -101,7 +114,7 @@ mod tests {
     use syn::Attribute;
 
     #[test]
-    fn parse_test() {
+    fn parse() {
         let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
         if let proc_macro2::TokenTree::Group(group) = attr.tokens.into_iter().next().unwrap() {
             let attr_args: Parameters = parse2(group.stream()).unwrap();
@@ -111,7 +124,7 @@ mod tests {
             let other_val = attr_args.get(&"other".into());
 
             assert_eq!(foo_val, Some(&ParamVal::Str("fooValue".to_string())));
-            assert_eq!(bar_val, Some(&ParamVal::UnsignedInt(1)));
+            assert_eq!(bar_val, Some(&ParamVal::Int(1)));
             assert_eq!(baz_val, Some(&ParamVal::Bool(true)));
             assert_eq!(other_val, None);
         } else {
