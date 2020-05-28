@@ -5,15 +5,15 @@ pub enum ParamKey {
     Unnamed(usize),
 }
 
-impl From<&str> for ParamKey {
-    fn from(src: &str) -> Self {
-        ParamKey::Named(src.into())
-    }
-}
-
 impl From<String> for ParamKey {
     fn from(src: String) -> Self {
         ParamKey::Named(src)
+    }
+}
+
+impl From<&str> for ParamKey {
+    fn from(src: &str) -> Self {
+        ParamKey::Named(src.into())
     }
 }
 
