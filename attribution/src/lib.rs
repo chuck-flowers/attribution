@@ -4,7 +4,7 @@
 mod conversion;
 mod params;
 
-pub use attribution_macros::attr_args;
+pub use attribution_macros::AttrArgs;
 pub use conversion::FromParameters;
 pub use conversion::FromParametersError;
 pub use params::DynamicParameters;

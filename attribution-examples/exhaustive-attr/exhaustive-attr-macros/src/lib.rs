@@ -1,4 +1,4 @@
-use attribution::attr_args;
+use attribution::AttrArgs;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::ToTokens;
@@ -12,7 +12,7 @@ use syn::LitInt;
 use syn::LitStr;
 use syn::Stmt;
 
-#[attr_args]
+#[derive(AttrArgs)]
 struct AttributeArgs {
     flag: bool,
     string: String,
