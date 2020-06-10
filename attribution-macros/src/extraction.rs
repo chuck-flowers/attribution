@@ -23,7 +23,7 @@ fn build_extractor(position: usize, field: &Field) -> Stmt {
         let field_key = Lit::Str(lit_str);
 
         parse_quote! {
-            let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into()).unwrap();
+            let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into())?;
         }
     } else {
         let ident_name = format!("_{}", position);
@@ -32,7 +32,7 @@ fn build_extractor(position: usize, field: &Field) -> Stmt {
         let lit_int = LitInt::new(&format!("{}usize", position), field_span);
         let field_key = Lit::Int(lit_int);
         parse_quote! {
-            let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into()).unwrap();
+            let #ident = attribution::FromParameters::from_parameters(&mut attr_args, &#field_key.into())?;
         }
     }
 }
