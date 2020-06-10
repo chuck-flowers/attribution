@@ -3,6 +3,8 @@ use crate::params::ParamVal;
 use crate::Parameters;
 use core::convert::TryFrom;
 use core::convert::TryInto;
+use proc_macro2::Span as Span2;
+use syn::parse::Error as ParseError;
 
 /// An error that occurs as a result of a failed conversion of a `Parameters`
 /// struct
@@ -15,6 +17,21 @@ pub enum FromParametersError<'a> {
     /// Indicates the error occurred because the value that was attempted for conversion
     /// was for the incorrect type.
     UnexpectedType,
+}
+
+impl<'a> From<FromParametersError<'a>> for ParseError {
+    fn from(src: FromParametersError<'a>) -> ParseError {
+        match src {
+            FromParametersError::MissingParam { param_key } => {
+                let message = format!("The required parameter '{}' is missing.", param_key);
+                ParseError::new(Span2::call_site(), message)
+            }
+            FromParametersError::UnexpectedType => {
+                let message = "An unexpected type was provided to a parameter.";
+                ParseError::new(Span2::call_site(), message)
+            }
+        }
+    }
 }
 
 /// A trait that is used to extract data from a `Parameters` struct.
