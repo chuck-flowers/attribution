@@ -73,7 +73,7 @@ mod tests {
 
         let actual = build_extractor(0, &raw_field);
         let expected: Stmt = parse_quote! {
-            let foo = attribution::FromParameters::from_parameters(&mut attr_args, &"foo".into()).unwrap();
+            let foo = attribution::FromParameters::from_parameters(&mut attr_args, &"foo".into())?;
         };
 
         assert_eq!(actual, expected);
@@ -85,7 +85,7 @@ mod tests {
 
         let actual = build_extractor(0, &raw_field);
         let expected: Stmt = parse_quote! {
-            let _0 = attribution::FromParameters::from_parameters(&mut attr_args, &0usize.into()).unwrap();
+            let _0 = attribution::FromParameters::from_parameters(&mut attr_args, &0usize.into())?;
         };
 
         assert_eq!(actual, expected);
