@@ -143,8 +143,8 @@ mod tests {
                 fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
                     let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
 
-                    let _0 = attribution::FromParameters::from_parameters(&mut attr_args, &0usize.into()).unwrap();
-                    let _1 = attribution::FromParameters::from_parameters(&mut attr_args, &1usize.into()).unwrap();
+                    let _0 = attribution::FromParameters::from_parameters(&mut attr_args, &0usize.into())?;
+                    let _1 = attribution::FromParameters::from_parameters(&mut attr_args, &1usize.into())?;
 
                     Ok(Foo(_0, _1))
                 }
