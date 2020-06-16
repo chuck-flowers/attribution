@@ -23,21 +23,18 @@ use syn::ItemImpl;
 use syn::ItemStruct;
 use syn::Variant;
 
-/// The attribute that is used to generate the parsing logic for a struct
+/// The derive macro that is used to generate the parsing logic for a struct
 /// representing the parameters for an attribute.
-#[proc_macro_attribute]
-pub fn attr_args(_attr: TokenStream, input: TokenStream) -> TokenStream {
+#[proc_macro_derive(AttrArgs)]
+pub fn attr_args(input: TokenStream) -> TokenStream {
     let output = match parse_macro_input!(input as Item) {
         Item::Struct(input_struct) => {
             let impl_item = impl_parse_for_struct(&input_struct);
-            quote! { #input_struct #impl_item }
+            quote! { #impl_item }
         }
         Item::Enum(input_enum) => {
             let impl_item = impl_parse_for_enum(&input_enum);
-            quote! {
-                #input_enum
-                #impl_item
-            }
+            quote! { #impl_item }
         }
         _ => panic!("The attribute can only be applied to structs and enums"),
     };

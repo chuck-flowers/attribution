@@ -1,6 +1,6 @@
 extern crate proc_macro;
 
-use attribution::attr_args;
+use attribution::AttrArgs;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
@@ -12,7 +12,7 @@ use syn::ItemFn;
 use syn::LitStr;
 use syn::Pat;
 
-#[attr_args]
+#[derive(AttrArgs)]
 enum EzTraceArgs {
     StartAndEnd { start: String, end: String },
     Start { start: String },
