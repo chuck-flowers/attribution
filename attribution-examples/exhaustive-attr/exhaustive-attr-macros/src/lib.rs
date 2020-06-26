@@ -15,6 +15,7 @@ use syn::Stmt;
 #[derive(AttrArgs)]
 struct AttributeArgs {
     flag: bool,
+    simple_flag: bool,
     string: String,
     integer: i64,
     float: f64,
@@ -37,6 +38,10 @@ fn make_print_lines(attr: AttributeArgs) -> impl IntoIterator<Item = Stmt> {
         value: attr.flag,
         span: proc_macro2::Span::call_site(),
     };
+    let simple_flag_val = LitBool {
+        value: attr.simple_flag,
+        span: proc_macro2::Span::call_site(),
+    };
     let string_val = LitStr::new(&attr.string, Span::call_site());
     let integer_val = LitInt::new(&attr.integer.to_string(), Span::call_site());
     let float_val = LitFloat::new(&attr.float.to_string(), Span::call_site());
@@ -49,6 +54,9 @@ fn make_print_lines(attr: AttributeArgs) -> impl IntoIterator<Item = Stmt> {
     vec![
         parse_quote! {
             println!("flag = {}", #flag_val);
+        },
+        parse_quote! {
+            println!("simple_flag = {}", #simple_flag_val);
         },
         parse_quote! {
             println!("string = {}", #string_val);

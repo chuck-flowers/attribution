@@ -115,17 +115,20 @@ mod tests {
 
     #[test]
     fn parse() {
-        let attr: Attribute = parse_quote!(#[attr(foo = "fooValue", bar = 1, baz = true)]);
+        let attr: Attribute =
+            parse_quote!(#[attr(string = "fooValue", integer = 1, flag = true, simple_flag)]);
         if let proc_macro2::TokenTree::Group(group) = attr.tokens.into_iter().next().unwrap() {
             let attr_args: Parameters = parse2(group.stream()).unwrap();
-            let foo_val = attr_args.get(&"foo".into());
-            let bar_val = attr_args.get(&"bar".into());
-            let baz_val = attr_args.get(&"baz".into());
+            let string_val = attr_args.get(&"string".into());
+            let integer_val = attr_args.get(&"integer".into());
+            let flag_val = attr_args.get(&"flag".into());
+            let simple_flag_val = attr_args.get(&"simple_flag".into());
             let other_val = attr_args.get(&"other".into());
 
-            assert_eq!(foo_val, Some(&ParamVal::Str("fooValue".to_string())));
-            assert_eq!(bar_val, Some(&ParamVal::Int(1)));
-            assert_eq!(baz_val, Some(&ParamVal::Bool(true)));
+            assert_eq!(string_val, Some(&ParamVal::Str("fooValue".to_string())));
+            assert_eq!(integer_val, Some(&ParamVal::Int(1)));
+            assert_eq!(flag_val, Some(&ParamVal::Bool(true)));
+            assert_eq!(simple_flag_val, Some(&ParamVal::Bool(true)));
             assert_eq!(other_val, None);
         } else {
             panic!("Didn't unwrap appropriately");
