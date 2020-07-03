@@ -1,26 +1,15 @@
 use crate::ParamVal;
+use metafor::metafor;
 
-impl From<bool> for ParamVal {
-    fn from(src: bool) -> Self {
-        ParamVal::Bool(src)
-    }
-}
-
-impl From<i64> for ParamVal {
-    fn from(src: i64) -> Self {
-        ParamVal::Int(src)
-    }
-}
-
-impl From<f64> for ParamVal {
-    fn from(src: f64) -> Self {
-        ParamVal::Float(src)
-    }
-}
-
-impl From<String> for ParamVal {
-    fn from(src: String) -> Self {
-        ParamVal::Str(src)
+#[metafor(variant = [
+    { name: Bool, ty: bool },
+    { name: Int, ty: i64 },
+    { name: Float, ty: f64 },
+    { name: Str, ty: String }
+])]
+impl From<__variant__ty__> for ParamVal {
+    fn from(src: __variant__ty__) -> Self {
+        ParamVal::__variant__name__(src)
     }
 }
 

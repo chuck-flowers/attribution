@@ -1,6 +1,7 @@
 use crate::ParamVal;
 use core::convert::TryFrom;
 use core::convert::TryInto;
+use metafor::metafor;
 
 /// An error that is received as a result of not being able to convert a `ParamVal`
 /// into a given type. This is due to the `ParmaVal` not being of the correct variant
@@ -10,48 +11,18 @@ pub enum TryIntoParamValError {
     UnexpectedType,
 }
 
-impl TryFrom<ParamVal> for bool {
+#[metafor(variant = [
+    { name: Bool, ty: bool },
+    { name: Float, ty: f64 },
+    { name: Int, ty: i64 },
+    { name: Str, ty: String }
+])]
+impl TryFrom<ParamVal> for __variant__ty__ {
     type Error = TryIntoParamValError;
 
     fn try_from(param_val: ParamVal) -> Result<Self, Self::Error> {
-        if let ParamVal::Bool(b) = param_val {
+        if let ParamVal::__variant__name__(b) = param_val {
             Ok(b)
-        } else {
-            Err(TryIntoParamValError::UnexpectedType)
-        }
-    }
-}
-
-impl TryFrom<ParamVal> for f64 {
-    type Error = TryIntoParamValError;
-
-    fn try_from(param_val: ParamVal) -> Result<Self, Self::Error> {
-        if let ParamVal::Float(f) = param_val {
-            Ok(f)
-        } else {
-            Err(TryIntoParamValError::UnexpectedType)
-        }
-    }
-}
-
-impl TryFrom<ParamVal> for i64 {
-    type Error = TryIntoParamValError;
-
-    fn try_from(param_val: ParamVal) -> Result<Self, Self::Error> {
-        if let ParamVal::Int(i) = param_val {
-            Ok(i)
-        } else {
-            Err(TryIntoParamValError::UnexpectedType)
-        }
-    }
-}
-
-impl TryFrom<ParamVal> for String {
-    type Error = TryIntoParamValError;
-
-    fn try_from(param_val: ParamVal) -> Result<Self, Self::Error> {
-        if let ParamVal::Str(s) = param_val {
-            Ok(s)
         } else {
             Err(TryIntoParamValError::UnexpectedType)
         }
