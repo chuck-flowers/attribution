@@ -94,12 +94,16 @@ impl TryFrom<Lit> for ParamVal {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use syn::parse_quote;
 
     #[test]
     fn parse_array() {
         let array_val: ParamVal = parse_quote!([1, 2, 3]);
-        assert_eq!(array_val, ParamVal::Array(vec![ParamVal::Int(1), ParamVal::Int(2), ParamVal::Int(3)]))
+        assert_eq!(
+            array_val,
+            ParamVal::Array(vec![ParamVal::Int(1), ParamVal::Int(2), ParamVal::Int(3)])
+        )
     }
 
     #[test]

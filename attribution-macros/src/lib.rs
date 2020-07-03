@@ -126,6 +126,7 @@ fn build_variant_parser(enum_name: &Ident, variant: &Variant) -> ItemFn {
 mod tests {
 
     use super::*;
+    use pretty_assertions::assert_eq;
     use syn::parse_quote;
 
     #[test]
@@ -148,10 +149,6 @@ mod tests {
             }
         };
 
-        assert_eq!(
-            expected, actual,
-            "Expected: `{:#?}`\nActual: `{:#?}`",
-            expected, actual
-        );
+        assert_eq!(expected, actual);
     }
 }

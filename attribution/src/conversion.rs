@@ -113,6 +113,7 @@ mod tests {
 
     use super::*;
     use crate::Parameters;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn from_parameters_bool() {

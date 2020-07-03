@@ -112,6 +112,7 @@ mod tests {
     use syn::parse2;
     use syn::parse_quote;
     use syn::Attribute;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn parse() {

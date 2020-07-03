@@ -51,6 +51,7 @@ where
 mod tests {
     use super::*;
     use core::convert::TryInto;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn array_conversion() {

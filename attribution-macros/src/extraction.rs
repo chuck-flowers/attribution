@@ -41,6 +41,7 @@ fn build_extractor(position: usize, field: &Field) -> Stmt {
 mod tests {
 
     use super::*;
+    use pretty_assertions::assert_eq;
     use proc_macro2::Span;
     use syn::parse_quote;
     use syn::Field;
