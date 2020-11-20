@@ -1,4 +1,4 @@
-#![warn(clippy::all, clippy::cargo)]
+#![warn(clippy::all)]
 #![allow(clippy::multiple_crate_versions)]
 
 mod conversion;

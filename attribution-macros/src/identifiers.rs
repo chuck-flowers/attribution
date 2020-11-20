@@ -28,15 +28,15 @@ mod tests {
 
     #[test]
     fn build_unnamed_idents_test() {
-        let _0: Ident = parse_quote! { _0 };
-        let _1: Ident = parse_quote! { _1 };
-        let _2: Ident = parse_quote! { _2 };
+        let first_unnamed: Ident = parse_quote! { _0 };
+        let second_unnamed: Ident = parse_quote! { _1 };
+        let third_unnamed: Ident = parse_quote! { _2 };
 
         let mut actual = build_unnamed_idents(3);
 
-        assert_eq!(Some(_0), actual.next());
-        assert_eq!(Some(_1), actual.next());
-        assert_eq!(Some(_2), actual.next());
+        assert_eq!(Some(first_unnamed), actual.next());
+        assert_eq!(Some(second_unnamed), actual.next());
+        assert_eq!(Some(third_unnamed), actual.next());
         assert_eq!(None, actual.next());
     }
 

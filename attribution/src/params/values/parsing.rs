@@ -39,9 +39,9 @@ impl TryFrom<ExprArray> for ParamVal {
         expr_array
             .elems
             .into_iter()
-            .map(|expr| ParamVal::try_from(expr))
+            .map(ParamVal::try_from)
             .collect::<Result<Vec<ParamVal>, _>>()
-            .map(|vals| ParamVal::Array(vals))
+            .map(ParamVal::Array)
     }
 }
 
@@ -83,8 +83,8 @@ impl TryFrom<Lit> for ParamVal {
     fn try_from(lit: Lit) -> Result<Self, Self::Error> {
         match lit {
             Lit::Bool(b) => Ok(ParamVal::Bool(b.value)),
-            Lit::Int(i) => i.base10_parse::<i64>().map(|int| ParamVal::Int(int)),
-            Lit::Float(f) => f.base10_parse::<f64>().map(|float| ParamVal::Float(float)),
+            Lit::Int(i) => i.base10_parse::<i64>().map(ParamVal::Int),
+            Lit::Float(f) => f.base10_parse::<f64>().map(ParamVal::Float),
             Lit::Str(s) => Ok(ParamVal::Str(s.value())),
             other_lit => Err(ParseError::new_spanned(other_lit, "Unrecognized literal")),
         }

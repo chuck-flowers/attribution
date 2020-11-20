@@ -1,7 +1,6 @@
 use crate::identifiers::build_unnamed_idents;
 use syn::parse_quote;
 use syn::Expr;
-use syn::ExprCall;
 use syn::Fields;
 use syn::Ident;
 use syn::ItemStruct;

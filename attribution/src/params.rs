@@ -96,7 +96,7 @@ impl FromParameters for DynamicParameters {
         _: &'a ParamKey,
     ) -> Result<Self, FromParametersError<'a>> {
         let mut ret = DynamicParameters(Parameters::default());
-        let keys: Vec<_> = params.0.keys().map(|key| key.clone()).collect();
+        let keys: Vec<_> = params.0.keys().cloned().collect();
         for key in keys {
             let val = params.0.remove(&key).unwrap();
             (ret.0).0.insert(key, val);
@@ -109,10 +109,10 @@ impl FromParameters for DynamicParameters {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use syn::parse2;
     use syn::parse_quote;
     use syn::Attribute;
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn parse() {
