@@ -80,6 +80,7 @@ fn impl_parse_for_enum(input_enum: &ItemEnum) -> ItemImpl {
 
         impl syn::parse::Parse for #enum_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
+                let span = buffer.span();
                 #(#parser_decls)*
 
                 // Groups the parsers together
@@ -87,14 +88,13 @@ fn impl_parse_for_enum(input_enum: &ItemEnum) -> ItemImpl {
 
                 // Find the first parser that matches the input.
                 let parse_result = parsers.iter()
-                    .map(|func| func(buffer))
+                    .map(|func| func(&buffer.fork()))
                     .filter(Result::is_ok)
                     .next();
 
                 // Return the parsed data or an error stating that it could
                 // not be parsed.
                 parse_result.unwrap_or_else(|| {
-                    let span = proc_macro2::Span::call_site();
                     Err(syn::parse::Error::new(span, "No matching variant found."))
                 })
             }
