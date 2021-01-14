@@ -36,6 +36,21 @@ impl Parse for Parameters {
     fn parse(input: ParseStream) -> syn::parse::Result<Self> {
         let mut params = Parameters::default();
 
+        // If the content is wrapped in parentheses, unwrap it and parse the content.
+        if input.peek(syn::token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+            let params = content.parse::<Parameters>();
+            if !content.is_empty() {
+                return Err(syn::parse::Error::new(
+                    input.span(),
+                    "Superfulous tokens in attribute body. Please remove.",
+                ));
+            } else {
+                return params;
+            }
+        }
+
         let mut pos = 0;
         while !input.is_empty() {
             let (key, val) = parse_kv(input)?;
