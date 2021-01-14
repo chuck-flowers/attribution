@@ -80,23 +80,17 @@ fn impl_parse_for_enum(input_enum: &ItemEnum) -> ItemImpl {
 
         impl syn::parse::Parse for #enum_name {
             fn parse(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<Self> {
-                let span = buffer.span();
                 #(#parser_decls)*
 
-                // Groups the parsers together
-                let parsers = [#(#parser_idents),*];
+                #(
+                    if let Ok(val) = buffer.call(#parser_idents) {
+                        return Ok(val);
+                    }
+                )*
 
-                // Find the first parser that matches the input.
-                let parse_result = parsers.iter()
-                    .map(|func| func(&buffer.fork()))
-                    .filter(Result::is_ok)
-                    .next();
-
-                // Return the parsed data or an error stating that it could
-                // not be parsed.
-                parse_result.unwrap_or_else(|| {
-                    Err(syn::parse::Error::new(span, "No matching variant found."))
-                })
+                else {
+                    return Err(buffer.error("No matching variant found."));
+                }
             }
         }
     }
@@ -113,7 +107,7 @@ fn build_variant_parser(enum_name: &Ident, variant: &Variant) -> ItemFn {
     parse_quote! {
         #[allow(non_snake_case)]
         fn #parser_ident(buffer: &syn::parse::ParseBuffer) -> syn::parse::Result<#enum_name> {
-            let mut attr_args = <attribution::Parameters as syn::parse::Parse>::parse(buffer)?;
+            let mut attr_args = buffer.parse::<attribution::Parameters>()?;
 
             #(#extractors)*
 
